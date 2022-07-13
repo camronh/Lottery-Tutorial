@@ -115,4 +115,12 @@ function closeWeek(uint256 _randomNumber) public {
 }
 ```
 
+7. Read function
+
+```solidity
+function getEntriesForNumber(uint256 _number, uint256 _week) public view returns (address[] memory) {
+    return tickets[_week][_number];
+}
+```
+
 

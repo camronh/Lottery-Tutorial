@@ -45,4 +45,15 @@ contract Lottery {
             }
         }
     }
+
+    /// @notice Read function to get addresses entered into a specific number for a specific week
+    /// @param _week The week to get the list of addresses for
+    /// @param _number The number to get the list of addresses for
+    function getEntriesForNumber(uint256 _number, uint256 _week)
+        public
+        view
+        returns (address[] memory)
+    {
+        return tickets[_week][_number];
+    }
 }
