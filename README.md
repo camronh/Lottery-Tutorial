@@ -79,4 +79,40 @@ mapping(uint256 => mapping(uint256 => address[])) public tickets; // mapping of 
 mapping(uint256 => uint256) public winningNumber; // mapping to store each weeks winning number
 ```
 
+5. Create a function to buy a ticket
+
+We will use require statements to secure this function.
+
+```solidity
+function enter(uint256 _number) public payable {
+    require(_number <= MAX_NUMBER, "Number must be 1-65535"); // guess has to be between 1 and 65535
+    require(block.timestamp < endTime, "Lottery has ended"); // lottery has to be open
+    require(msg.value == ticketPrice, "Ticket price is 0.01 ether"); // user needs to send 0.01 ether with the transaction
+    tickets[week][_number].push(msg.sender); // add user's address to list of entries for their number under the current week
+    pot += ticketPrice; // account for the ticket sale in the pot
+}
+```
+
+
+6. Create a function to mock the QRNG picking the winners
+   
+We will use require statements to secure this function.
+
+```solidity
+function closeWeek(uint256 _randomNumber) public {
+    require(block.timestamp > endTime, "Lottery has not ended"); // not available until end time has passed
+    winningNumber[week] = _randomNumber;
+    address[] memory winners = tickets[week][_randomNumber]; // get list of addresses that chose the random number this week
+    week++; // increment week counter
+    endTime += 7 days; // set end time for 7 days later
+    if (winners.length > 0) {
+        uint256 earnings = pot / winners.length; // divide pot evenly among winners
+        pot = 0; // reset pot
+        for (uint256 i = 0; i < winners.length; i++) {
+            payable(winners[i]).transfer(earnings); // send earnings to each winner
+        }
+    }
+}
+```
+
 
