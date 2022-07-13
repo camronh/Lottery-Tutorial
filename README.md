@@ -72,4 +72,11 @@ contract Lottery {
 ```
 
 
+4. Create mappings for tickets and winning numbers
+
+```solidity
+mapping(uint256 => mapping(uint256 => address[])) public tickets; // mapping of week => entry number choice => list of addresses that bought that entry number
+mapping(uint256 => uint256) public winningNumber; // mapping to store each weeks winning number
+```
+
 
