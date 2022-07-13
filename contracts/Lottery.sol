@@ -8,9 +8,12 @@ contract Lottery {
     uint256 public endTime; // datetime that current week ends and lottery is closable
     uint256 public constant MAX_NUMBER = 65535; // highest possible number returned by QRNG
 
-    /// @notice Initializes the lottery with the given ticket price.
-    /// @param _endTime The price of a single ticket.
+    mapping(uint256 => mapping(uint256 => address[])) public tickets; // mapping of week => entry number choice => list of addresses that bought that entry number
+    mapping(uint256 => uint256) public winningNumber; // mapping to store each weeks winning number
+
+    /// @notice Initialize the contract with a set day and time of the week winners can be chosen
+    /// @param _endTime date and time when the lottery becomes closable
     constructor(uint256 _endTime) {
-        endTime = _endTime; // set end time
+        endTime = _endTime;
     }
 }
