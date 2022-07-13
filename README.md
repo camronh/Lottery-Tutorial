@@ -55,5 +55,21 @@ contract Lock {
 }
 ```
 
+3. Add globals
+
+```solidity
+contract Lottery {
+    uint256 public pot = 0; // total amount of ether in the pot
+    uint256 public ticketPrice = 0.01 ether; // price of a single ticket
+    uint256 public week = 1; // current week counter
+    uint256 public endTime; // datetime that current week ends and lottery is closable
+    uint256 public constant MAX_NUMBER = 65535; // highest possible number returned by QRNG
+
+    // Initialize the contract with a set day and time of the week winners can be chosen
+    constructor(uint256 _endTime) {
+        endTime = _endTime;
+    }
+```
+
 
 
