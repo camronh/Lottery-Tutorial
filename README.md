@@ -11,7 +11,7 @@ Deploy a Decentralized Lottery contract to the Rinkeby testnet that uses Quantum
 Developers with a basic understanding of the Solidity and Javascript languages that would like to try Web3. 
 
 
-This is gonna be a lottery contract that anyone can enter. The user chooses a number 1-6214251 and pays the ticket price. They revenue for the tickets is collected in the pot in the contract. After 7 days the contract will allow anyone to start the drawing. We will call on QRNG for a random number. The pot will be split between the users that chose that number. If there was no winners, the pot rolls over to the next week. 
+This is gonna be a lottery contract that anyone can enter. The user chooses a number 1-65535 and pays the ticket price. They revenue for the tickets is collected in the pot in the contract. After 7 days the contract will allow anyone to start the drawing. We will call on QRNG for a random number. The pot will be split between the users that chose that number. If there was no winners, the pot rolls over to the next week. 
 
 
 1. Initiailize project
