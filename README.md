@@ -124,3 +124,7 @@ function getEntriesForNumber(uint256 _number, uint256 _week) public view returns
 ```
 
 
+
+## Testing the contract
+
+1. In the test folder, create a file called `Lottery.js`

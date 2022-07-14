@@ -16,6 +16,7 @@ contract Lottery {
     /// @notice Initialize the contract with a set day and time of the week winners can be chosen
     /// @param _endTime date and time when the lottery becomes closable
     constructor(uint256 _endTime) {
+        require(_endTime > block.timestamp, "End time must be in the future");
         endTime = _endTime;
     }
 
