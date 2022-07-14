@@ -1,5 +1,3 @@
-
-
 # Basics
 
 > By the end of this article you should be able to
@@ -8,11 +6,9 @@ Deploy a Decentralized Lottery contract to the Rinkeby testnet that uses Quantum
 
 > Who is this tutorial for?
 
-Developers with a basic understanding of the Solidity and Javascript languages that would like to try Web3. 
+Developers with a basic understanding of the Solidity and Javascript languages that would like to try Web3.
 
-
-This is gonna be a lottery contract that anyone can enter. The user chooses a number 1-65535 and pays the ticket price. They revenue for the tickets is collected in the pot in the contract. After 7 days the contract will allow anyone to start the drawing. We will call on QRNG for a random number. The pot will be split between the users that chose that number. If there was no winners, the pot rolls over to the next week. 
-
+This is gonna be a lottery contract that anyone can enter. The user chooses a number 1-65535 and pays the ticket price. They revenue for the tickets is collected in the pot in the contract. After 7 days the contract will allow anyone to start the drawing. We will call on QRNG for a random number. The pot will be split between the users that chose that number. If there was no winners, the pot rolls over to the next week.
 
 1. Initiailize project
 
@@ -33,13 +29,14 @@ npm i -D hardhat
 ```
 npx hardhat
 ```
+
 Follow the prompts for `Create a JavaScript project` and the rest default
 
 > run tests
+
 ```
 npx hardhat test
-``` 
-
+```
 
 # Writing the contract
 
@@ -71,7 +68,6 @@ contract Lottery {
     }
 ```
 
-
 4. Create mappings for tickets and winning numbers
 
 ```solidity
@@ -93,9 +89,8 @@ function enter(uint256 _number) public payable {
 }
 ```
 
-
 6. Create a function to mock the QRNG picking the winners
-   
+
 We will use require statements to secure this function.
 
 ```solidity
@@ -123,8 +118,70 @@ function getEntriesForNumber(uint256 _number, uint256 _week) public view returns
 }
 ```
 
-
-
 ## Testing the contract
 
-1. In the test folder, create a file called `Lottery.js`
+1. In the test folder, create a file called `Lottery.js` and import `ethers` and `expect`
+
+```Javascript
+const { expect } = require("chai");
+const { ethers } = require("hardhat");
+```
+
+2. Start with a simple deployment test
+
+```JavaScript
+describe("Lottery", function () {
+  let lotteryContract, accounts, nextWeek;
+
+  it("Deploys", async function () {
+      const Lottery = await ethers.getContractFactory("Lottery");
+      accounts = await ethers.getSigners();
+      nextWeek = Math.floor(Date.now() / 1000) + 604800;
+      lotteryContract = await Lottery.deploy(nextWeek);
+      expect(await lotteryContract.deployed()).to.be.ok;
+  });
+});
+```
+
+We can use `npx hardhat test` to run our tests
+
+3. Lets add a few more tests but feel free to add any/all of the relevant ones from the test file
+
+```JavaScript
+describe("Lottery", function () {
+    let lotteryContract, accounts, nextWeek;
+
+    it("Deploys", async function () {
+        const Lottery = await ethers.getContractFactory("Lottery");
+        accounts = await ethers.getSigners();
+        nextWeek = Math.floor(Date.now() / 1000) + 604800;
+        lotteryContract = await Lottery.deploy(nextWeek);
+        expect(await lotteryContract.deployed()).to.be.ok;
+    });
+
+    it("Users enter between 1-3", async function () {
+        for (let account of accounts) {
+            let randomNumber = Math.floor(Math.random() * 3);
+            await lotteryContract
+                .connect(account)
+                .enter(randomNumber, { value: ethers.utils.parseEther("0.01") });
+            const entries = await lotteryContract.getEntriesForNumber(randomNumber, 1);
+            expect(entries).to.include(account.address);
+        }
+    });
+
+    it("Choose winners", async function () {
+      const winningNumber = 2;
+      // Move hre 1 week in the future
+      let endTime = await lotteryContract.endTime();
+      await ethers.provider.send("evm_mine", [Number(endTime)]);
+      const winners = await lotteryContract.getEntriesForNumber(winningNumber, 1);
+      let balanceBefore = await ethers.provider.getBalance(winners[0]);
+      await lotteryContract.closeWeek(winningNumber);
+      const balanceAfter = await ethers.provider.getBalance(winners[0]);
+      expect(balanceAfter.gt(balanceBefore)).to.be.true;
+    });
+});
+```
+
+run `npx hardhat test` to try it out
