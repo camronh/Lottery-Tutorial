@@ -17,7 +17,7 @@ contract Lottery {
     /// @param _endTime date and time when the lottery becomes closable
     constructor(uint256 _endTime) {
         require(_endTime > block.timestamp, "End time must be in the future");
-        endTime = _endTime;
+        endTime = _endTime; // store the end time of the lottery
     }
 
     /// @notice Buy a ticket for the current week
@@ -47,7 +47,7 @@ contract Lottery {
         }
     }
 
-    /// @notice Read function to get addresses entered into a specific number for a specific week
+    /// @notice Read only function to get addresses entered into a specific number for a specific week
     /// @param _week The week to get the list of addresses for
     /// @param _number The number to get the list of addresses for
     function getEntriesForNumber(uint256 _number, uint256 _week)

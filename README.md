@@ -10,7 +10,7 @@ Developers with a basic understanding of the Solidity and Javascript languages t
 
 This is gonna be a lottery contract that anyone can enter. The user chooses a number 1-65535 and pays the ticket price. They revenue for the tickets is collected in the pot in the contract. After 7 days the contract will allow anyone to start the drawing. We will call on QRNG for a random number. The pot will be split between the users that chose that number. If there was no winners, the pot rolls over to the next week.
 
-1. Initiailize project
+1. Initialize project
 
 Create a folder and open it up in your IDE
 
@@ -112,7 +112,7 @@ function closeWeek(uint256 _randomNumber) public {
 
 7. Read function
 
-```solidity
+```Solidity
 function getEntriesForNumber(uint256 _number, uint256 _week) public view returns (address[] memory) {
     return tickets[_week][_number];
 }
@@ -145,7 +145,7 @@ describe("Lottery", function () {
 
 We can use `npx hardhat test` to run our tests
 
-3. Lets add a few more tests but feel free to add any/all of the relevant ones from the test file
+3. Lets add a few more tests but feel free to add any/all of the relevant ones from the [test file](/test/Lottery.js)
 
 ```JavaScript
 describe("Lottery", function () {
