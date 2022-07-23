@@ -40,44 +40,47 @@ npx hardhat test
 
 # Writing the contract
 
-1. In the contract folder, create a file called `Lottery.sol`
+1. In the contracts folder, create a file called `Lottery.sol`
 
-2. Set the solidity version, found in the hardhat.config.js and start with an empty contract with an empty constructor for now
+2. Set the solidity version, found in the hardhat.config.js and start with an empty contract
 
 ```solidity
 pragma solidity ^0.8.9;
 
-contract Lock {
-    constructor() {}
-}
+contract Lottery {}
 ```
 
 3. Add globals
 
-```solidity
+
 contract Lottery {
     uint256 public pot = 0; // total amount of ether in the pot
     uint256 public ticketPrice = 0.01 ether; // price of a single ticket
     uint256 public week = 1; // current week counter
     uint256 public endTime; // datetime that current week ends and lottery is closable
     uint256 public constant MAX_NUMBER = 65535; // highest possible number returned by QRNG
-
-    // Initialize the contract with a set day and time of the week winners can be chosen
-    constructor(uint256 _endTime) {
-        endTime = _endTime;
-    }
+}
 ```
 
-4. Create mappings for tickets and winning numbers
+4. Under the globals add the mappings for tickets and winning numbers
 
 ```solidity
 mapping(uint256 => mapping(uint256 => address[])) public tickets; // mapping of week => entry number choice => list of addresses that bought that entry number
 mapping(uint256 => uint256) public winningNumber; // mapping to store each weeks winning number
 ```
 
-5. Create a function to buy a ticket
+5. Under the mappings add the constructor function
 
-We will use require statements to secure this function.
+```Solidity
+// Initialize the contract with a set day and time of the week winners can be chosen
+constructor(uint256 _endTime) {
+    endTime = _endTime;
+}
+```
+
+6. After the constructor function add a function to buy a ticket
+
+> We will use require statements to secure this function.
 
 ```solidity
 function enter(uint256 _number) public payable {
@@ -89,7 +92,7 @@ function enter(uint256 _number) public payable {
 }
 ```
 
-6. Create a function to mock the QRNG picking the winners
+7. Create a function to mock the QRNG picking the winners
 
 We will use require statements to secure this function.
 
@@ -110,7 +113,7 @@ function closeWeek(uint256 _randomNumber) public {
 }
 ```
 
-7. Read function
+8. Read function
 
 ```Solidity
 function getEntriesForNumber(uint256 _number, uint256 _week) public view returns (address[] memory) {
