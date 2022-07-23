@@ -70,7 +70,7 @@ contract Lottery {}
 
 #### 3. Add global variables to the contract
 
-```Solidity=
+```Solidity
 contract Lottery {
     uint256 public pot = 0; // total amount of ether in the pot
     uint256 public ticketPrice = 0.01 ether; // price of a single ticket
@@ -146,14 +146,19 @@ This function will return the list of addresses that chose the given number for 
 
 ### Testing the contract
 
-1. In the test folder, delete the `Lock.js` file and create a file called `Lottery.js`. Then import `ethers` and `expect`
+#### 1. In the test folder, delete the `Lock.js` file and create a file called `Lottery.js`. 
+
+#### 2. Import npm libraries
 
 ```Javascript
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
 ```
 
-2. Start with a simple deployment test
+#### 3. Add tests
+
+
+We'll start with a simple deployment test to be sure that the contract is deploying correctly.
 
 ```JavaScript
 describe("Lottery", function () {
@@ -169,9 +174,9 @@ describe("Lottery", function () {
 });
 ```
 
-We can use `npx hardhat test` to run our tests
+We can use `npx hardhat test` to run the test
 
-3. Lets add a few more tests but feel free to add any/all of the relevant ones from the [test file](/test/Lottery.js)
+Lets add a few more tests but feel free to add any/all of the relevant tests from the [completed test file](/test/Lottery.js)
 
 ```JavaScript
 describe("Lottery", function () {
