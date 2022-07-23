@@ -56,9 +56,11 @@ npx hardhat test
 
 ### Writing the Smart Contract
 
-1. In the `contracts` folder, delete the `Lock.sol` file and create a file named `Lottery.sol`.
+> The complete contract code can be found in the [Part1 branch](https://github.com/camronh/Lottery-Tutorial/blob/main/contracts/Lottery.sol)
 
-2. Set the solidity version, found in the hardhat.config.js and start with an empty contract
+#### 1. In the `contracts` folder, delete the `Lock.sol` file and create a file named `Lottery.sol`.
+
+#### 2. Set the solidity version, and start with an empty contract object
 
 ```solidity
 pragma solidity ^0.8.9;
@@ -66,9 +68,9 @@ pragma solidity ^0.8.9;
 contract Lottery {}
 ```
 
-3. Add globals
+#### 3. Add global variables to the contract
 
-```Solidity
+```Solidity=
 contract Lottery {
     uint256 public pot = 0; // total amount of ether in the pot
     uint256 public ticketPrice = 0.01 ether; // price of a single ticket
@@ -78,14 +80,14 @@ contract Lottery {
 }
 ```
 
-4. Under the globals add the mappings for tickets and winning numbers
+#### 4. Underneath the global variables, add the mappings for tickets and winning numbers
 
 ```solidity
-mapping(uint256 => mapping(uint256 => address[])) public tickets; // mapping of week => entry number choice => list of addresses that bought that entry number
+mapping(uint256 => mapping(uint256 => address[])) public tickets; // mapping of week => entry choice => list of addresses
 mapping(uint256 => uint256) public winningNumber; // mapping to store each weeks winning number
 ```
 
-5. Under the mappings add the constructor function
+#### 5. Underneath the mappings add the constructor function
 
 ```Solidity
 // Initialize the contract with a set day and time of the week winners can be chosen
