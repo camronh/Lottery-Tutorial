@@ -59,7 +59,7 @@ When we run `npx hardhat test`, hardhat tests the contracts on a local Ethereum 
 
 ### Writing the Smart Contract
 
-> The complete contract code can be found in the [Part1 branch](https://github.com/camronh/Lottery-Tutorial/blob/main/contracts/Lottery.sol)
+> The complete contract code can be found in the [Part1 branch](https://github.com/camronh/Lottery-Tutorial/blob/Part1/contracts/Lottery.sol)
 
 #### 1. In the `contracts` folder, delete the `Lock.sol` file and create a file named `Lottery.sol`.
 
@@ -180,7 +180,7 @@ describe("Lottery", function () {
 
 We can use `npx hardhat test` to run the test
 
-Lets add a few more tests but feel free to add any/all of the relevant tests from the [completed test file](/test/Lottery.js)
+Lets add a few more tests but feel free to add any/all of the relevant tests from the [completed test file](https://github.com/camronh/Lottery-Tutorial/blob/Part1/test/Lottery.js)
 
 ```JavaScript
 describe("Lottery", function () {
@@ -231,4 +231,4 @@ In Part 2, we will be decentralizing our lottery contract. We'll use the [API3 Q
 Anybody will be able to call the `closeWeek` function without a random number. Our contract will then call the API3 QRNG to generate a random number that will be used
 to determine the winners. The lottery will run itself with no controlling parties.
 
-### [Get started on Part 2](./PART2.md)
+### [Get started on Part 2](https://github.com/camronh/Lottery-Tutorial/blob/main/PART2.md)
