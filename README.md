@@ -1,46 +1,62 @@
-# Basics
+# Beginners Web3/Solidity/Blockchain Tutorial
 
-> By the end of this article you should be able to
+In this tutorial we will be walking through building and deploying a decentralized lottery smart contract using Hardhat. In this decentralized app, or dApp, anyone can choose a number 1-65535 and pay the ticket price to enter. They revenue for the ticket sales is collected in the pot in the contract. After 7 days the contract will allow anyone to start the drawing. The contract will call the API3 QRNG for a random number. The pot will be split between all of the users that chose that number. If there was no winners, the pot rolls over to the next week.
 
-Deploy a Decentralized Lottery contract to the Rinkeby testnet that uses Quantum Randomness.
+> By the end of this tutorial you should be able to
+
+Deploy a decentralized lottery smart contract to the Rinkeby testnet that uses Quantum Randomness.
 
 > Who is this tutorial for?
 
-Developers with a basic understanding of the Solidity and Javascript languages that would like to try Web3.
+Developers with a basic understanding of the Solidity and Javascript languages that would like to expand their knowledge.
 
-This is gonna be a lottery contract that anyone can enter. The user chooses a number 1-65535 and pays the ticket price. They revenue for the tickets is collected in the pot in the contract. After 7 days the contract will allow anyone to start the drawing. We will call on QRNG for a random number. The pot will be split between the users that chose that number. If there was no winners, the pot rolls over to the next week.
+## Instructions
 
-1. Initialize project
+### Setup
 
-Create a folder and open it up in your IDE
+Create a folder and open it up in your preferred IDE. 
 
-```
-npm init
-```
+#### 1. Initialize a Node.js project
 
-2. Install hardhat
+In a terminal, initialize a project by running the following command:
 
 ```
-npm i -D hardhat
+npm init -y
 ```
 
-3. Initialize the HH project
+#### 2. Install Hardhat
+
+Hardhat is a npm library that helps you work with smart contracts. Since it will only be used for development purposes, we can install it as a dev dependency:
+
+```
+npm install -D hardhat
+```
+
+#### 3. Initialize the Hardhat project
+
+We will use the Hardhat CLI to create a boilerplate Web3 project: 
 
 ```
 npx hardhat
 ```
 
-Follow the prompts for `Create a JavaScript project` and the rest default
+Follow the prompts to `Create a JavaScript project` and choose the default options for the rest. 
 
-> run tests
+When the CLI is done creating the project, you should see few new files and directories inside of your project. 
+boilerplate contracts are located in the `contracts` folder. Tests for that contract are located in the `tests` folder. We will be deleting 
+these files in the next steps so now would be a good time to look through them. 
+
+Run the test command to see the boilerplate contract in action.
 
 ```
 npx hardhat test
 ```
 
-# Writing the contract
 
-1. In the contracts folder, create a file called `Lottery.sol`
+
+### Writing the Smart Contract
+
+1. In the `contracts` folder, delete the `Lock.sol` file and create a file named `Lottery.sol`.
 
 2. Set the solidity version, found in the hardhat.config.js and start with an empty contract
 
@@ -52,7 +68,7 @@ contract Lottery {}
 
 3. Add globals
 
-
+```Solidity
 contract Lottery {
     uint256 public pot = 0; // total amount of ether in the pot
     uint256 public ticketPrice = 0.01 ether; // price of a single ticket
@@ -94,7 +110,6 @@ function enter(uint256 _number) public payable {
 
 7. Create a function to mock the QRNG picking the winners
 
-We will use require statements to secure this function.
 
 ```solidity
 function closeWeek(uint256 _randomNumber) public {
@@ -123,7 +138,7 @@ function getEntriesForNumber(uint256 _number, uint256 _week) public view returns
 
 ## Testing the contract
 
-1. In the test folder, create a file called `Lottery.js` and import `ethers` and `expect`
+1. In the test folder, delete the `Lock.js` file and create a file called `Lottery.js`. Then import `ethers` and `expect`
 
 ```Javascript
 const { expect } = require("chai");
