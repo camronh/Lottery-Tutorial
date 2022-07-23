@@ -87,7 +87,7 @@ mapping(uint256 => mapping(uint256 => address[])) public tickets; // mapping of 
 mapping(uint256 => uint256) public winningNumber; // mapping to store each weeks winning number
 ```
 
-#### 5. Underneath the mappings add the constructor function
+#### 5. Underneath the mappings, add the constructor function
 
 ```Solidity
 // Initialize the contract with a set day and time of the week winners can be chosen
@@ -96,9 +96,7 @@ constructor(uint256 _endTime) {
 }
 ```
 
-6. After the constructor function add a function to buy a ticket
-
-> We will use require statements to secure this function.
+#### 6. Underneath the constructor function, add a function to buy a ticket
 
 ```solidity
 function enter(uint256 _number) public payable {
@@ -110,8 +108,10 @@ function enter(uint256 _number) public payable {
 }
 ```
 
-7. Create a function to mock the QRNG picking the winners
+Users can call this function with a number 1-65535 and a value of 0.01 ether to buy a lottery ticket. The user's address is added to the 
+addresses array in the `tickets` mapping.
 
+#### 7. Create a function to mock the QRNG picking the winners
 
 ```solidity
 function closeWeek(uint256 _randomNumber) public {
@@ -130,7 +130,10 @@ function closeWeek(uint256 _randomNumber) public {
 }
 ```
 
-8. Read function
+Before we decentralize our lottery, lets mock the random number generation so that we can test the contracts functionality. We will be 
+decentralizing this function in Part 2 of this tutorial by using the API3 QRNG.
+
+#### 8. Create read only function
 
 ```Solidity
 function getEntriesForNumber(uint256 _number, uint256 _week) public view returns (address[] memory) {
@@ -138,7 +141,10 @@ function getEntriesForNumber(uint256 _number, uint256 _week) public view returns
 }
 ```
 
-## Testing the contract
+This function will return the list of addresses that chose the given number for the given week. 
+
+
+### Testing the contract
 
 1. In the test folder, delete the `Lock.js` file and create a file called `Lottery.js`. Then import `ethers` and `expect`
 
