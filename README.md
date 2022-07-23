@@ -52,6 +52,9 @@ Run the test command to see the boilerplate contract in action.
 npx hardhat test
 ```
 
+When we run `npx hardhat test`, hardhat tests the contracts on a local Ethereum node. This makes it fast and free to try out our contracts.
+
+
 
 
 ### Writing the Smart Contract
@@ -89,6 +92,9 @@ mapping(uint256 => uint256) public winningNumber; // mapping to store each weeks
 
 #### 5. Underneath the mappings, add the constructor function
 
+When deploying the contract, we'll need to pass in a datetime that the lottery will end. After the lottery ends, the next week will begin and will end 
+7 days after the original `endTime`.
+
 ```Solidity
 // Initialize the contract with a set day and time of the week winners can be chosen
 constructor(uint256 _endTime) {
@@ -113,6 +119,9 @@ addresses array in the `tickets` mapping.
 
 #### 7. Create a function to mock the QRNG picking the winners
 
+Before we decentralize our lottery, lets mock the random number generation so that we can test the contracts functionality. We will be 
+decentralizing this function in Part 2 of this tutorial by using the API3 QRNG.
+
 ```solidity
 function closeWeek(uint256 _randomNumber) public {
     require(block.timestamp > endTime, "Lottery has not ended"); // not available until end time has passed
@@ -130,19 +139,15 @@ function closeWeek(uint256 _randomNumber) public {
 }
 ```
 
-Before we decentralize our lottery, lets mock the random number generation so that we can test the contracts functionality. We will be 
-decentralizing this function in Part 2 of this tutorial by using the API3 QRNG.
-
 #### 8. Create read only function
+
+This function will return the list of addresses that chose the given number for the given week. 
 
 ```Solidity
 function getEntriesForNumber(uint256 _number, uint256 _week) public view returns (address[] memory) {
     return tickets[_week][_number];
 }
 ```
-
-This function will return the list of addresses that chose the given number for the given week. 
-
 
 ### Testing the contract
 
@@ -156,7 +161,6 @@ const { ethers } = require("hardhat");
 ```
 
 #### 3. Add tests
-
 
 We'll start with a simple deployment test to be sure that the contract is deploying correctly.
 
@@ -216,3 +220,15 @@ describe("Lottery", function () {
 ```
 
 run `npx hardhat test` to try it out
+
+## Conclusion
+
+In part 1 of this tutorial we learned how build and test a lottery smart contract using Hardhat. The problem is, our `closeWeek` function is not secure.
+We wouldn't want anyone who could possibly enter the lottery to be able to pass numbers into the `closeWeek` function. That would lead to serious security concerns. 
+If anyone had the ability to control the number being passed into the `closeWeek` function, they could manipulate that number for their gain. 
+
+In Part 2, we will be decentralizing our lottery contract. We'll use the [API3 QRNG](https://api3.qrng.online/API/jsonInt/1/65535) to generate the winning number.
+Anybody will be able to call the `closeWeek` function without a random number. Our contract will then call the API3 QRNG to generate a random number that will be used
+to determine the winners. The lottery will run itself with no controlling parties.
+
+### [Get started on Part 2](./PART2.md)
