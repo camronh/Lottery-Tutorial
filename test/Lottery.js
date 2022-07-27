@@ -3,7 +3,7 @@ const { ethers } = require("hardhat");
 
 describe("Lottery", function () {
   let lotteryContract, accounts, nextWeek;
-
+  
   describe("Deployment", function () {
     it("Deploys", async function () {
       const Lottery = await ethers.getContractFactory("Lottery");
@@ -15,7 +15,7 @@ describe("Lottery", function () {
 
     it("Has the correct endTime", async function () {
       let endTime = await lotteryContract.endTime();
-      expect(endTime).to.equal(Math.floor(Date.now() / 1000) + 604800);
+      expect(endTime).to.be.closeTo(Math.floor(Date.now() / 1000) + 604800, 5);
     });
   });
 
