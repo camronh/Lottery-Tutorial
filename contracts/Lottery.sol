@@ -5,6 +5,9 @@ import "@api3/airnode-protocol/contracts/rrp/requesters/RrpRequesterV0.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract Lottery is RrpRequesterV0, Ownable {
+    // Events
+    event RequestedRandomNumber(bytes32 indexed requestId);
+
     // Global Variables
     uint256 public pot = 0; // total amount of ether in the pot
     uint256 public ticketPrice = 0.01 ether; // price of a single ticket
@@ -20,6 +23,7 @@ contract Lottery is RrpRequesterV0, Ownable {
     // Mappings
     mapping(uint256 => mapping(uint256 => address[])) public tickets; // mapping of week => entry number choice => list of addresses that bought that entry number
     mapping(uint256 => uint256) public winningNumber; // mapping to store each weeks winning number
+    mapping(bytes32 => bool) public pendingRequestIds; // mapping to store pending request ids
 
     /// @notice Initialize the contract with a set day and time of the week winners can be chosen
     /// @param _endTime date and time when the lottery becomes closable
@@ -59,6 +63,23 @@ contract Lottery is RrpRequesterV0, Ownable {
                 payable(winners[i]).transfer(earnings); // send earnings to each winner
             }
         }
+    }
+
+    function getWinningNumber() public payable {
+        // require(block.timestamp > endTime, "Lottery has not ended"); // not available until end time has passed
+        require(msg.value >= 0.01 ether, "Please top up sponsor wallet"); // user needs to send 0.01 ether with the transaction
+        bytes32 requestId = airnodeRrp.makeFullRequest(
+            airnodeAddress,
+            endpointId,
+            address(this),
+            sponsorWallet,
+            address(this),
+            this.closeWeek.selector,
+            ""
+        );
+        pendingRequestIds[requestId] = true;
+        emit RequestedRandomNumber(requestId);
+        payable(sponsorWallet).transfer(msg.value);
     }
 
     /// @notice Read only function to get addresses entered into a specific number for a specific week

@@ -170,7 +170,7 @@ it("Sets sponsor wallet", async function () {
         lotteryContract.address
     );
     await expect(lotteryContract.connect(accounts[1]).setSponsorWallet(sponsorWalletAddress)).to.be.reverted; // onlyOwner should be able to call this function
-    
+
     await lotteryContract.setSponsorWallet(sponsorWalletAddress);
     expect(await lotteryContract.sponsorWallet()).to.equal(sponsorWalletAddress);
 });
@@ -180,3 +180,39 @@ run `npx hardhat test` to test your code.
 
 ### 4. Write request function
 
+In the `Lottery.sol` contract, add the following function:
+
+```solidity
+function getWinningNumber() public payable {
+    // require(block.timestamp > endTime, "Lottery has not ended"); // not available until end time has passed
+    require(msg.value >= 0.01 ether, "Please top up sponsor wallet"); // user needs to send 0.01 ether with the transaction
+    bytes32 requestId = airnodeRrp.makeFullRequest(
+        airnodeAddress,
+        endpointId,
+        address(this), // Use the contract address as the sponsor. This will allow us to skip the step of sponsoring the requester
+        sponsorWallet,
+        address(this), 
+        this.closeWeek.selector,
+        ""
+    );
+    pendingRequestIds[requestId] = true; // Store the pendingRequestIds in a mapping
+    emit RequestedRandomNumber(requestId); // Emit an event that the request has been made
+    payable(sponsorWallet).transfer(msg.value); // Transfer the ether to the sponsor wallet
+}
+```
+
+In lines 4-12 we are making a request to the API3 QRNG for a single random number. In line 15 we transfer the gas funds to the sponsor wallet so Airnode has the gas to 
+return the random number. 
+
+In line 13 we are storing the requestId in a mapping. This will allow us to check if the request is pending or not. Let's add the following under our mappings:
+
+```solidity
+mapping (bytes32 => bool) public pendingRequestIds;
+```
+
+In line 14 we emit an event that the request has been made and a request ID has been generated. We need to describe our event at the top of our contract:
+
+```solidity
+contract Lottery is RrpRequesterV0, Ownable {
+    event RequestedRandomNumber(bytes32 indexed requestId); 
+```
