@@ -39,3 +39,18 @@ We can tell git to ignore the `.env` file by adding the following to a `.gitigno
 
 #### 2. Configure Hardhat to use forking
 
+By adding the following to our `module.exports` in the `hardhat.config.js` file, we tell hardhat to make a copy of the Ropsten network for use in local testing:
+
+```js
+module.exports = {
+  solidity: "0.8.9",
+  networks: {
+    hardhat: { // Hardhat local network
+      chainId: 3, // Force the ChainID to be 3 (Ropsten) in testing
+      forking: { // Configure the forking behaviour
+        url: process.env.RPC_URL, // Using the RPC_URL from the .env file
+      }
+    },
+  }
+};
+```
