@@ -1,6 +1,7 @@
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
 const airnodeProtocol = require("@api3/airnode-protocol");
+const airnodeAdmin = require("@api3/airnode-admin");
 
 
 describe("Lottery", function () {
@@ -18,6 +19,18 @@ describe("Lottery", function () {
 
       lotteryContract = await Lottery.deploy(nextWeek, rrpAddress);
       expect(await lotteryContract.deployed()).to.be.ok;
+    });
+
+    it("Sets sponsor wallet", async function () {
+      const sponsorWalletAddress = await airnodeAdmin.deriveSponsorWalletAddress(
+        "xpub6DXSDTZBd4aPVXnv6Q3SmnGUweFv6j24SK77W4qrSFuhGgi666awUiXakjXruUSCDQhhctVG7AQt67gMdaRAsDnDXv23bBRKsMWvRzo6kbf",
+        "0x9d3C147cA16DB954873A498e0af5852AB39139f2",
+        lotteryContract.address
+      );
+      await expect(lotteryContract.connect(accounts[1]).setSponsorWallet(sponsorWalletAddress)).to.be.reverted; // onlyOwner
+      await lotteryContract.setSponsorWallet(sponsorWalletAddress);
+
+      expect(await lotteryContract.sponsorWallet()).to.equal(sponsorWalletAddress);
     });
 
     it("Has the correct endTime", async function () {

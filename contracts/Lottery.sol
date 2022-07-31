@@ -2,14 +2,20 @@
 pragma solidity ^0.8.9;
 
 import "@api3/airnode-protocol/contracts/rrp/requesters/RrpRequesterV0.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract Lottery is RrpRequesterV0 {
+contract Lottery is RrpRequesterV0, Ownable {
     // Global Variables
     uint256 public pot = 0; // total amount of ether in the pot
     uint256 public ticketPrice = 0.01 ether; // price of a single ticket
     uint256 public week = 1; // current week counter
     uint256 public endTime; // datetime that current week ends and lottery is closable
     uint256 public constant MAX_NUMBER = 65535; // highest possible number returned by QRNG
+    address public constant airnodeAddress =
+        0x9d3C147cA16DB954873A498e0af5852AB39139f2;
+    bytes32 public constant endpointId =
+        0xfb6d017bb87991b7495f563db3c8cf59ff87b09781947bb1e417006ad7f55a78;
+    address public sponsorWallet;
 
     // Mappings
     mapping(uint256 => mapping(uint256 => address[])) public tickets; // mapping of week => entry number choice => list of addresses that bought that entry number
@@ -22,6 +28,10 @@ contract Lottery is RrpRequesterV0 {
     {
         require(_endTime > block.timestamp, "End time must be in the future");
         endTime = _endTime; // store the end time of the lottery
+    }
+
+    function setSponsorWallet(address _sponsorWallet) public onlyOwner {
+        sponsorWallet = _sponsorWallet;
     }
 
     /// @notice Buy a ticket for the current week

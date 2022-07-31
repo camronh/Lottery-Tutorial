@@ -5,11 +5,11 @@ be integrating the API3 QRNG into our contract. and deploying it onto the Rinkeb
 
 
 ## Instructions
-### Forking
+### 1. Forking
 
 [[Explain Forking Here]]
 
-#### 1. DotEnv
+#### DotEnv
 
 We are going to be using sensitive credentials in the next steps. We will be using the [DotEnv](https://www.npmjs.com/package/dotenv) package to store those credentials. 
 
@@ -37,7 +37,7 @@ We can tell git to ignore the `.env` file by adding the following to a `.gitigno
 .env
 ```
 
-#### 2. Configure Hardhat to use forking
+#### Configure Hardhat to use forking
 
 By adding the following to our `module.exports` in the `hardhat.config.js` file, we tell hardhat to make a copy of the Ropsten network for use in local testing:
 
@@ -55,15 +55,15 @@ module.exports = {
 };
 ```
 
-### Make contract an Airnode Requester
+### 2. Make contract an Airnode Requester
 
-#### 1. Install dependencies
+#### Install dependencies
 
 ```bash
 npm install @api3/airnode-protocol
 ```
 
-#### 2. Import the Airnode Protocol into contract
+#### Import the Airnode Protocol into contract
 
 At the top of `Lottery.sol`, underneath the solidity version, import the Airnode RRP Contract:
 
@@ -76,7 +76,7 @@ import "@api3/airnode-protocol/contracts/rrp/requesters/RrpRequesterV0.sol";
 contract Lottery is RrpRequesterV0{
 ```
 
-#### 3. Rewrite our constructor
+#### Rewrite our constructor
 
 We need to set the address of the RRP contract we are using. We can do that in the constructor by making it an argument for deployment:
 
@@ -89,7 +89,7 @@ constructor(uint256 _endTime, address _airnodeRrpAddress)
 }
 ```
 
-### Test
+#### Test
 
 At the top of the `tests/Lottery.js` file, import the Airnode protocol package:
 
@@ -115,3 +115,66 @@ it("Deploys", async function () {
 ```
 
 Run `npx hardhat test` to test your code.
+
+### 3. Setup Airnode
+
+#### Params
+
+We need to store the [Airnode Params](https://docs.api3.org/qrng/reference/providers.html) in the contract. In the `Lottery.sol` contract, add the following to the global variables:
+
+```solidity
+address public constant airnodeAddress =  0x9d3C147cA16DB954873A498e0af5852AB39139f2; 
+bytes32 public constant endpointId = 0xfb6d017bb87991b7495f563db3c8cf59ff87b09781947bb1e417006ad7f55a78;
+address public sponsorWallet; // We will store the sponsor wallet here later
+```
+
+
+#### Set the sponsor wallet
+
+We need to make the contract Ownable. That will allow us to restrict the ability to set the sponsor wallet to the contract owner.
+
+First, import the `Ownable` contract at the top of the `Lottery.sol` contract:
+
+```solidity
+import "@api3/airnode-protocol/contracts/rrp/requesters/RrpRequesterV0.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+
+contract Lottery is RrpRequesterV0, Ownable {
+```
+
+Now we can make our `setSponsorWallet` function and attach the `onlyOwner` modifier to restrict access:
+
+```solidity
+function setSponsorWallet(address _sponsorWallet) public onlyOwner {
+    sponsorWallet = _sponsorWallet;
+}
+```
+
+
+#### Test
+
+We'll be deriving our sponsor wallet using the `@api3/airnode-admin` package. We can import it into our `tests/Lottery.js` file:
+
+```js
+const airnodeAdmin = require("@api3/airnode-admin");
+```
+
+Add the following test inside the "Deployment" tests
+
+```js
+it("Sets sponsor wallet", async function () {
+    const sponsorWalletAddress = await airnodeAdmin.deriveSponsorWalletAddress("xpub6DXSDTZBd4aPVXnv6Q3SmnGUweFv6j24SK77W4qrSFuhGgi666awUiXakjXruUSCDQhhctVG7AQt67gMdaRAsDnDXv23bBRKsMWvRzo6kbf",
+    "0x9d3C147cA16DB954873A498e0af5852AB39139f2",
+    lotteryContract.address
+    );
+    await expect(lotteryContract.connect(accounts[1]).setSponsorWallet(sponsorWalletAddress)).to.be.reverted; // onlyOwner
+    await lotteryContract.setSponsorWallet(sponsorWalletAddress);
+
+    expect(await lotteryContract.sponsorWallet()).to.equal(sponsorWalletAddress);
+});
+```
+
+run `npx hardhat test` to test your code.
+
+### 4. Write request function
+

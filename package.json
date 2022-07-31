@@ -14,6 +14,7 @@
     "hardhat": "^2.10.0"
   },
   "dependencies": {
+    "@api3/airnode-admin": "^0.7.2",
     "@api3/airnode-protocol": "^0.7.2",
     "dotenv": "^16.0.1"
   }
