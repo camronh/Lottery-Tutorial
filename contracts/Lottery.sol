@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.9;
 
-contract Lottery {
+import "@api3/airnode-protocol/contracts/rrp/requesters/RrpRequesterV0.sol";
+
+contract Lottery is RrpRequesterV0 {
     // Global Variables
     uint256 public pot = 0; // total amount of ether in the pot
     uint256 public ticketPrice = 0.01 ether; // price of a single ticket
@@ -15,7 +17,9 @@ contract Lottery {
 
     /// @notice Initialize the contract with a set day and time of the week winners can be chosen
     /// @param _endTime date and time when the lottery becomes closable
-    constructor(uint256 _endTime) {
+    constructor(uint256 _endTime, address _airnodeRrpAddress)
+        RrpRequesterV0(_airnodeRrpAddress)
+    {
         require(_endTime > block.timestamp, "End time must be in the future");
         endTime = _endTime; // store the end time of the lottery
     }

@@ -54,3 +54,64 @@ module.exports = {
   }
 };
 ```
+
+### Make contract an Airnode Requester
+
+#### 1. Install dependencies
+
+```bash
+npm install @api3/airnode-protocol
+```
+
+#### 2. Import the Airnode Protocol into contract
+
+At the top of `Lottery.sol`, underneath the solidity version, import the Airnode RRP Contract:
+
+```solidity
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity ^0.8.9;
+
+import "@api3/airnode-protocol/contracts/rrp/requesters/RrpRequesterV0.sol";
+
+contract Lottery is RrpRequesterV0{
+```
+
+#### 3. Rewrite our constructor
+
+We need to set the address of the RRP contract we are using. We can do that in the constructor by making it an argument for deployment:
+
+```solidity
+constructor(uint256 _endTime, address _airnodeRrpAddress)
+    RrpRequesterV0(_airnodeRrpAddress) 
+{
+    require(_endTime > block.timestamp, "End time must be in the future");
+    endTime = _endTime; // store the end time of the lottery
+}
+```
+
+### Test
+
+At the top of the `tests/Lottery.js` file, import the Airnode protocol package:
+
+```js
+const airnodeProtocol = require("@api3/airnode-protocol");
+```
+
+We need to pass the address of the RRP contract into the constructor. We can do that by adding the following to our "Deploys" test:
+
+```js
+it("Deploys", async function () {
+    const Lottery = await ethers.getContractFactory("Lottery");
+    accounts = await ethers.getSigners();
+    nextWeek = Math.floor(Date.now() / 1000) + 604800;
+
+    let { chainId } = await ethers.provider.getNetwork(); // Get the chainId we are using in hardhat
+    const rrpAddress = airnodeProtocol.AirnodeRrpAddresses[chainId]; // Get the AirnodeRrp address for the chainId
+
+
+    lotteryContract = await Lottery.deploy(nextWeek, rrpAddress); // Pass address in to the constructor
+    expect(await lotteryContract.deployed()).to.be.ok;
+});
+```
+
+Run `npx hardhat test` to test your code.
