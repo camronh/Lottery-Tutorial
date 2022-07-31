@@ -193,7 +193,7 @@ function getWinningNumber() public payable {
         sponsorWallet,
         address(this), 
         this.closeWeek.selector,
-        ""
+        "" // No params
     );
     pendingRequestIds[requestId] = true; // Store the pendingRequestIds in a mapping
     emit RequestedRandomNumber(requestId); // Emit an event that the request has been made
@@ -201,8 +201,9 @@ function getWinningNumber() public payable {
 }
 ```
 
-In lines 4-12 we are making a request to the API3 QRNG for a single random number. In line 15 we transfer the gas funds to the sponsor wallet so Airnode has the gas to 
-return the random number. 
+We will leave line 2 commented out for ease of testing. In lines 4-12 we are making a request to the API3 QRNG for a single random number. In line 15 we transfer the gas funds to the sponsor wallet so Airnode has the gas to return the random number. 
+
+####  Map pending request ids
 
 In line 13 we are storing the requestId in a mapping. This will allow us to check if the request is pending or not. Let's add the following under our mappings:
 
@@ -210,9 +211,58 @@ In line 13 we are storing the requestId in a mapping. This will allow us to chec
 mapping (bytes32 => bool) public pendingRequestIds;
 ```
 
+#### Create event
+
 In line 14 we emit an event that the request has been made and a request ID has been generated. We need to describe our event at the top of our contract:
 
 ```solidity
 contract Lottery is RrpRequesterV0, Ownable {
     event RequestedRandomNumber(bytes32 indexed requestId); 
+```
+
+### 5. Rewrite fulfill function
+
+Let's overwrite the `closeWeek` function to be used exclusively by Airnode when it has a random number ready to be returned. Paste the following over the `closeWeek` function:
+
+```solidity
+function closeWeek(bytes32 requestId, bytes calldata data) // Airnode returns the requestId and the payload to be decoded later
+    public
+    onlyAirnodeRrp // Only AirnodeRrp can call this function
+{
+    require(pendingRequestIds[requestId], "No such request made");
+    delete pendingRequestIds[requestId]; // If the request has been responded to, remove it from the pendingRequestIds mapping
+
+    uint256 _randomNumber = abi.decode(data, (uint256)) % MAX_NUMBER; // Decode the random number from the data and modulo it by the max number
+    emit ReceivedRandomNumber(requestId, _randomNumber); // Emit an event that the random number has been received
+
+    // require(block.timestamp > endTime, "Lottery is open"); // will prevent duplicate closings. If someone closed it first it will increment the end time and not allow
+
+    // The rest we can leave unchanged
+    winningNumber[week] = _randomNumber;
+    address[] memory winners = tickets[week][_randomNumber];
+    week++; 
+    endTime += 7 days; 
+    if (winners.length > 0) {
+        uint256 earnings = pot / winners.length; 
+        pot = 0; 
+        for (uint256 i = 0; i < winners.length; i++) {
+            payable(winners[i]).transfer(earnings); 
+        }
+    } 
+}
+```
+
+In the first line set the function to take in the request ID and the payload. In line 3 we add a modifier to restrict this function to only be access by Airnode RRP. 
+On line 5 and 6 we handle the request ID. If the request ID is not in the `pendingRequestIds` mapping, we throw an error, otherwise we delete the request ID from the `pendingRequestIds` mapping.
+
+In line 8 we decode and typecast the random number from the payload. We don't need to import anything to use `abi.decode()`. Then we use the modulo operator (`%`) to ensure that the random number is between 0 and the max number. 
+
+Line 11 will prevent duplicate requests from being fulfilled. If more than 1 request is made, the first one to be fulfilled will increment the `endTime` and the rest will revert. We will leave it commented out for now to make testing easy.
+
+#### Create event
+
+In line 12 we emit an event that the random number has been received. We need to describe our event at the top of our contract under our other event:
+
+```solidity
+event ReceivedRandomNumber(bytes32 indexed requestId, uint256 randomNumber); 
 ```
