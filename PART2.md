@@ -159,18 +159,19 @@ We'll be deriving our sponsor wallet using the `@api3/airnode-admin` package. We
 const airnodeAdmin = require("@api3/airnode-admin");
 ```
 
-Add the following test inside the "Deployment" tests
+We will hardcode the [ANU QRNG Xpub and Airnode Address](https://docs.api3.org/qrng/reference/providers.html) to derive our sponsor wallet address. 
+Add the following test inside the "Deployment" tests:
 
 ```js
 it("Sets sponsor wallet", async function () {
     const sponsorWalletAddress = await airnodeAdmin.deriveSponsorWalletAddress(
-        "xpub6DXSDTZBd4aPVXnv6Q3SmnGUweFv6j24SK77W4qrSFuhGgi666awUiXakjXruUSCDQhhctVG7AQt67gMdaRAsDnDXv23bBRKsMWvRzo6kbf",
-        "0x9d3C147cA16DB954873A498e0af5852AB39139f2",
+        "xpub6DXSDTZBd4aPVXnv6Q3SmnGUweFv6j24SK77W4qrSFuhGgi666awUiXakjXruUSCDQhhctVG7AQt67gMdaRAsDnDXv23bBRKsMWvRzo6kbf", // ANU Xpub
+        "0x9d3C147cA16DB954873A498e0af5852AB39139f2", // ANU Airnode Address
         lotteryContract.address
     );
-    await expect(lotteryContract.connect(accounts[1]).setSponsorWallet(sponsorWalletAddress)).to.be.reverted; // onlyOwner
+    await expect(lotteryContract.connect(accounts[1]).setSponsorWallet(sponsorWalletAddress)).to.be.reverted; // onlyOwner should be able to call this function
+    
     await lotteryContract.setSponsorWallet(sponsorWalletAddress);
-
     expect(await lotteryContract.sponsorWallet()).to.equal(sponsorWalletAddress);
 });
 ```
