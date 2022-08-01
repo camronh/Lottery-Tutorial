@@ -266,3 +266,23 @@ In line 12 we emit an event that the random number has been received. We need to
 ```solidity
 event ReceivedRandomNumber(bytes32 indexed requestId, uint256 randomNumber); 
 ```
+
+### 6. Hardhat-Deploy
+
+We will be using Hardhat-Deploy to deploy and manage our contracts on different chains. First lets install the `hardhat-deploy` package:
+
+#### 1. Install
+
+```bash
+npm install -D hardhat-deploy
+```
+
+Then at the top of your `hardhat.config.js` file add the following:
+
+```js
+require('hardhat-deploy');
+``` 
+
+Now we can create a folder named `deploy` in the root to house our deployment scripts.
+
+#### 2. Write deploy script

@@ -11,7 +11,8 @@
   "description": "",
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^1.0.2",
-    "hardhat": "^2.10.0"
+    "hardhat": "^2.10.0",
+    "hardhat-deploy": "^0.11.12"
   },
   "dependencies": {
     "@api3/airnode-admin": "^0.7.2",
