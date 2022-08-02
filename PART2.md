@@ -334,7 +334,9 @@ Then, in a separate terminal, we can deploy to our local chain:
 npx hardhat --network localhost deploy
 ```
 
-If everything worked well, we should see a message in the console that says our contract address. We can also check the terminal running the chain for more detailed logging.
+If everything worked well, we should see a message in the console that says our contract address. We can also check the terminal running the chain for more detailed logging. 
+
+> Be sure to leave your blockchain running, as we will be using it throughout the rest of this tutorial.
 
 #### Set sponsor wallet on deployment
 
@@ -385,3 +387,56 @@ Lets try it out!
 ```bash
 npx hardhat --network localhost deploy
 ```
+
+### 7. Live testing!
+
+In this step, we will be testing our contract on a live testnet blockchain. This means that our random number requests will be answered by the ANU QRNG Airnode.
+
+#### Enter script
+
+We need to write a script that will connect to our deployed contract and enter the lottery. We will start by creating a file in the `scripts` folder named `enter.js`. If you look inside of the boilerplate `deploy.js` file, you'll see Hardhat recommends a format for scripts:
+
+```js
+const hre = require("hardhat");
+
+async function main() {
+  // Your script logic here...
+}
+
+main().catch((error) => {
+  console.error(error);
+  process.exitCode = 1;
+});
+```
+
+Inside the `main` funtion, we can put our enter script:
+
+```js
+const guess = 55; // The number we chose for our lottery entry
+const [account] = await hre.ethers.getSigners(); 
+
+const Lottery = await hre.deployments.get("Lottery");
+const lotteryContract = new hre.ethers.Contract(
+  Lottery.address,
+  Lottery.abi,
+  account
+);
+
+const ticketPrice = await lotteryContract.ticketPrice(); // Get the price of a ticket
+const tx = await lotteryContract.enter( // Enter the lottery
+    guess, // Pass in our guess
+    { value: ticketPrice } // Include the ticket price in Eth in the transaction
+); 
+await tx.wait(); // Wait for the transaction to be mined
+const entries = await lotteryContract.getEntriesForNumber(guess, 1); // Get a list of entries for our guess. Our address should be inside
+console.log(`Guesses for ${guess}: ${entries}`);
+```
+
+We can try it out by running the script against our local deployment:
+
+```bash
+npx hardhat --network localhost run scripts/enter.js
+```
+
+
+
