@@ -4,10 +4,10 @@ pragma solidity ^0.8.9;
 contract Lottery {
     // Global Variables
     uint256 public pot = 0; // total amount of ether in the pot
-    uint256 public ticketPrice = 0.01 ether; // price of a single ticket
+    uint256 public ticketPrice = 0.0001 ether; // price of a single ticket
     uint256 public week = 1; // current week counter
     uint256 public endTime; // datetime that current week ends and lottery is closable
-    uint256 public constant MAX_NUMBER = 65535; // highest possible number returned by QRNG
+    uint256 public constant MAX_NUMBER = 10000; // highest possible number
 
     // Mappings
     mapping(uint256 => mapping(uint256 => address[])) public tickets; // mapping of week => entry number choice => list of addresses that bought that entry number
@@ -23,9 +23,9 @@ contract Lottery {
     /// @notice Buy a ticket for the current week
     /// @param _number The number to buy a ticket for
     function enter(uint256 _number) public payable {
-        require(_number <= MAX_NUMBER, "Number must be 1-65535"); // guess has to be between 1 and 65535
+        require(_number <= MAX_NUMBER, "Number must be 1-MAX_NUMBER"); // guess has to be between 1 and 65535
         require(block.timestamp < endTime, "Lottery has ended"); // lottery has to be open
-        require(msg.value == ticketPrice, "Ticket price is 0.01 ether"); // user needs to send 0.01 ether with the transaction
+        require(msg.value == ticketPrice, "Ticket price is 0.0001 ether"); // user needs to send 0.01 ether with the transaction
         tickets[week][_number].push(msg.sender); // add user's address to list of entries for their number under the current week
         pot += ticketPrice; // account for the ticket sale in the pot
     }
