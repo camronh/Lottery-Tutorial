@@ -25,7 +25,7 @@ describe("Lottery", function () {
         let randomNumber = Math.floor(Math.random() * 3);
         await lotteryContract
           .connect(account)
-          .enter(randomNumber, { value: ethers.utils.parseEther("0.01") });
+          .enter(randomNumber, { value: ethers.utils.parseEther("0.0001") });
         const entries = await lotteryContract.getEntriesForNumber(randomNumber, 1);
         expect(entries).to.include(account.address);
       }
@@ -57,7 +57,7 @@ describe("Lottery", function () {
       await expect(
         lotteryContract
           .connect(accounts[0])
-          .enter(1, { value: ethers.utils.parseEther("0.01") })
+          .enter(1, { value: ethers.utils.parseEther("0.001") })
       ).to.be.reverted;
     });
 
@@ -70,7 +70,7 @@ describe("Lottery", function () {
 
     it("Pot should roll over", async function () {
       const pot = await lotteryContract.pot();
-      expect(pot).to.equal(ethers.utils.parseEther("0.2"));
+      expect(pot).to.equal(ethers.utils.parseEther("0.002"));
     });
 
     it("End time should push back 1 week from original end time", async function () {
@@ -85,7 +85,7 @@ describe("Lottery", function () {
         let randomNumber = Math.floor(Math.random() * 3);
         await lotteryContract
           .connect(account)
-          .enter(randomNumber, { value: ethers.utils.parseEther("0.01") });
+          .enter(randomNumber, { value: ethers.utils.parseEther("0.0001") });
         const entries = await lotteryContract.getEntriesForNumber(randomNumber, 2);
         expect(entries).to.include(account.address);
       }

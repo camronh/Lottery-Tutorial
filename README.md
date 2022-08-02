@@ -76,10 +76,10 @@ contract Lottery {}
 ```Solidity
 contract Lottery {
     uint256 public pot = 0; // total amount of ether in the pot
-    uint256 public ticketPrice = 0.01 ether; // price of a single ticket
+    uint256 public ticketPrice = 0.0001 ether; // price of a single ticket
     uint256 public week = 1; // current week counter
     uint256 public endTime; // datetime that current week ends and lottery is closable
-    uint256 public constant MAX_NUMBER = 65535; // highest possible number returned by QRNG
+    uint256 public constant MAX_NUMBER = 10000; // highest possible number
 }
 ```
 
@@ -106,15 +106,15 @@ constructor(uint256 _endTime) {
 
 ```solidity
 function enter(uint256 _number) public payable {
-    require(_number <= MAX_NUMBER, "Number must be 1-65535"); // guess has to be between 1 and 65535
+    require(_number <= MAX_NUMBER, "Number must be 1-MAX_NUMBER"); // guess has to be between 1 and 10,000
     require(block.timestamp < endTime, "Lottery has ended"); // lottery has to be open
-    require(msg.value == ticketPrice, "Ticket price is 0.01 ether"); // user needs to send 0.01 ether with the transaction
+    require(msg.value == ticketPrice, "Ticket price is 0.0001 ether"); // user needs to send 0.0001 ether with the transaction
     tickets[week][_number].push(msg.sender); // add user's address to list of entries for their number under the current week
     pot += ticketPrice; // account for the ticket sale in the pot
 }
 ```
 
-Users can call this function with a number 1-65535 and a value of 0.01 ether to buy a lottery ticket. The user's address is added to the 
+Users can call this function with a number 1-10000 and a value of 0.001 ether to buy a lottery ticket. The user's address is added to the 
 addresses array in the `tickets` mapping.
 
 #### 7. Create a function to mock the QRNG picking the winners
@@ -199,7 +199,7 @@ describe("Lottery", function () {
             let randomNumber = Math.floor(Math.random() * 3);
             await lotteryContract
                 .connect(account)
-                .enter(randomNumber, { value: ethers.utils.parseEther("0.01") });
+                .enter(randomNumber, { value: ethers.utils.parseEther("0.0001") });
             const entries = await lotteryContract.getEntriesForNumber(randomNumber, 1);
             expect(entries).to.include(account.address);
         }
