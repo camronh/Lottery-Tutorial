@@ -5,11 +5,11 @@ be integrating the API3 QRNG into our contract. and deploying it onto the Rinkeb
 
 ## Instructions
 
-### 1. Forking
+### Forking
 
 [[Explain Forking Here]]
 
-#### DotEnv
+#### 1. DotEnv
 
 We are going to be using sensitive credentials in the next steps. We will be using the [DotEnv](https://www.npmjs.com/package/dotenv) package to store those credentials.
 
@@ -37,7 +37,7 @@ We can tell git to ignore the `.env` file by adding the following to a `.gitigno
 .env
 ```
 
-#### Configure Hardhat to use forking
+#### 2. Configure Hardhat to use forking
 
 By adding the following to our `module.exports` in the `hardhat.config.js` file, we tell hardhat to make a copy of the Ropsten network for use in local testing:
 
@@ -57,15 +57,15 @@ module.exports = {
 };
 ```
 
-### 2. Make contract an Airnode Requester
+### Make contract an Airnode Requester
 
-#### Install dependencies
+#### 1. Install dependencies
 
 ```bash
 npm install @api3/airnode-protocol
 ```
 
-#### Import the Airnode Protocol into contract
+#### 2. Import the Airnode Protocol into contract
 
 At the top of `Lottery.sol`, underneath the solidity version, import the Airnode RRP Contract:
 
@@ -78,7 +78,7 @@ import "@api3/airnode-protocol/contracts/rrp/requesters/RrpRequesterV0.sol";
 contract Lottery is RrpRequesterV0{
 ```
 
-#### Rewrite our constructor
+#### 3. Rewrite our constructor
 
 We need to set the address of the RRP contract we are using. We can do that in the constructor by making it an argument for deployment:
 
@@ -91,7 +91,7 @@ constructor(uint256 _endTime, address _airnodeRrpAddress)
 }
 ```
 
-#### Test
+#### 4. Test
 
 At the top of the `tests/Lottery.js` file, import the Airnode protocol package:
 
@@ -117,9 +117,9 @@ it("Deploys", async function () {
 
 Run `npx hardhat test` to test your code.
 
-### 3. Setup Airnode
+### Setup Airnode
 
-#### Params
+#### 1. Params
 
 We need to store the [Airnode Params](https://docs.api3.org/qrng/reference/providers.html) in the contract. In the `Lottery.sol` contract, add the following to the global variables:
 
@@ -129,7 +129,7 @@ bytes32 public constant endpointId = 0xfb6d017bb87991b7495f563db3c8cf59ff87b0978
 address public sponsorWallet; // We will store the sponsor wallet here later
 ```
 
-#### Set the sponsor wallet
+#### 2. Set the sponsor wallet
 
 We need to make the contract Ownable. That will allow us to restrict the ability to set the sponsor wallet to the contract owner.
 
@@ -150,7 +150,7 @@ function setSponsorWallet(address _sponsorWallet) public onlyOwner {
 }
 ```
 
-#### Test
+#### 3. Test
 
 We'll be deriving our sponsor wallet using the `@api3/airnode-admin` package. We can import it into our `tests/Lottery.js` file:
 
@@ -179,7 +179,7 @@ it("Sets sponsor wallet", async function () {
 
 run `npx hardhat test` to test your code.
 
-### 4. Write request function
+### Write request function
 
 In the `Lottery.sol` contract, add the following function:
 
@@ -204,7 +204,7 @@ function getWinningNumber() public payable {
 
 We will leave line 2 commented out for ease of testing. In lines 4-12 we are making a request to the API3 QRNG for a single random number. In line 15 we transfer the gas funds to the sponsor wallet so Airnode has the gas to return the random number.
 
-#### Map pending request ids
+#### 1. Map pending request ids
 
 In line 13 we are storing the requestId in a mapping. This will allow us to check if the request is pending or not. Let's add the following under our mappings:
 
@@ -212,7 +212,7 @@ In line 13 we are storing the requestId in a mapping. This will allow us to chec
 mapping (bytes32 => bool) public pendingRequestIds;
 ```
 
-#### Create event
+#### 2. Create event
 
 In line 14 we emit an event that the request has been made and a request ID has been generated. We need to describe our event at the top of our contract:
 
@@ -221,9 +221,12 @@ contract Lottery is RrpRequesterV0, Ownable {
     event RequestedRandomNumber(bytes32 indexed requestId);
 ```
 
-### 5. Rewrite fulfill function
+### Rewrite fulfill function
 
-Let's overwrite the `closeWeek` function to be used exclusively by Airnode when it has a random number ready to be returned. Paste the following over the `closeWeek` function:
+
+#### 1. Rewrite `closeWeek`
+
+Let's overwrite the `closeWeek` function:
 
 ```solidity
 function closeWeek(bytes32 requestId, bytes calldata data) // Airnode returns the requestId and the payload to be decoded later
@@ -260,7 +263,7 @@ In line 8 we decode and typecast the random number from the payload. We don't ne
 
 Line 11 will prevent duplicate requests from being fulfilled. If more than 1 request is made, the first one to be fulfilled will increment the `endTime` and the rest will revert. We will leave it commented out for now to make testing easy.
 
-#### Create event
+#### 2. Create event
 
 In line 12 we emit an event that the random number has been received. We need to describe our event at the top of our contract under our other event:
 
@@ -268,11 +271,11 @@ In line 12 we emit an event that the random number has been received. We need to
 event ReceivedRandomNumber(bytes32 indexed requestId, uint256 randomNumber);
 ```
 
-### 6. Hardhat-Deploy
+### Hardhat-Deploy
 
 We will be using Hardhat-Deploy to deploy and manage our contracts on different chains. First lets install the `hardhat-deploy` package:
 
-#### Install
+#### 1. Install
 
 ```bash
 npm install -D hardhat-deploy
@@ -286,7 +289,7 @@ require("hardhat-deploy");
 
 Now we can create a folder named `deploy` in the root to house our deployment scripts Hardhat-Deploy will run all of our deployment scripts in order each time we run `npx hardhat deploy`.
 
-#### Write deploy script
+#### 2. Write deploy script
 
 In our `deploy` folder, create a file named `1_deploy.js`. We'll be using hardhat and the Airnode Protocol package so lets import them at the top:
 
@@ -320,7 +323,7 @@ Finally, lets name our script at the bottom of our `1_deploy.js` file:
 module.exports.tags = ["deploy"];
 ```
 
-#### Test locally
+#### 3. Test locally
 
 Let's try it out! We should test on a local blockchain first to make things easy. First lets start up a local blockchain:
 
@@ -338,7 +341,7 @@ If everything worked well, we should see a message in the console that says our 
 
 > Be sure to leave your blockchain running, as we will be using it throughout the rest of this tutorial.
 
-#### Set sponsor wallet on deployment
+#### 4. Set sponsor wallet on deployment
 
 We can couple another script with our deployment script so that the `setSponsorWallet` function is called after each deployment. We will start by creating a file in the `deploy` folder called `2_set_sponsorWallet.js`.
 
@@ -388,11 +391,11 @@ Lets try it out!
 npx hardhat --network localhost deploy
 ```
 
-### 7. Live testing!
+### Live testing!
 
 In this step, we will be testing our contract on a live testnet blockchain. This means that our random number requests will be answered by the ANU QRNG Airnode.
 
-#### Enter script
+#### 1. Enter script
 
 We need to write a script that will connect to our deployed contract and enter the lottery. We will start by creating a file in the `scripts` folder named `enter.js`. If you look inside of the boilerplate `deploy.js` file, you'll see Hardhat recommends a format for scripts:
 
@@ -439,7 +442,7 @@ We can try it out by running the script against our local deployment:
 npx hardhat --network localhost run scripts/enter.js
 ```
 
-#### Close Lottery script
+#### 2. Close Lottery script
 
 Next, we need a way for people to call Airnode for a random number when the lottery is closed. We will start by creating a file in the `scripts` folder named `close.js` and adding the boilerplate script code from the last step to it.
 
@@ -492,7 +495,7 @@ If we test this against our local chain, we should receive a request ID but no r
 npx hardhat --network localhost run scripts/close.js
 ```
 
-#### Set up Ropsten
+#### 3. Set up Ropsten
 
 In this next step, we will be pointing hardhat towards the Ropsten testnet. That means we will need a wallet with some Ropsten Eth funds on it. Even if you have a wallet, it is recommended you create a new wallet for testing purposes.
 
@@ -541,7 +544,7 @@ module.exports = {
 
 Now we can run all of our commands with the added `--network ropsten` flag without needing to change any code.
 
-#### Get Ropsten Eth
+#### 4. Get Ropsten Eth
 
 If you attempted to run any commands against Ropsten, chances are that they failed. Thats because we are using our newly generated wallet that doesn't even have the funds to pay for the transaction. We can get some free Ropsten Eth for testing by using a Ropsten Faucet.
 
@@ -578,7 +581,7 @@ If you followed the faucet steps correctly (and the faucet is currently operatin
 0x0EDA9399c969...: (1 ETH)
 ```
 
-#### Use Lottery contract on public chain
+#### 5. Use Lottery contract on public chain
 
 We have everything configured to deploy onto a public chain. Lets start with the deployment:
 
