@@ -49,7 +49,7 @@ module.exports = {
       // Hardhat local network
       chainId: 3, // Force the ChainID to be 3 (Ropsten) in testing
       forking: {
-        // Configure the forking behaviour
+        // Configure the forking behavior
         url: process.env.RPC_URL, // Using the RPC_URL from the .env file
       },
     },
@@ -492,3 +492,110 @@ If we test this against our local chain, we should receive a request ID but no r
 npx hardhat --network localhost run scripts/close.js
 ```
 
+#### Set up Ropsten
+
+In this next step, we will be pointing hardhat towards the Ropsten testnet. That means we will need a wallet with some Ropsten Eth funds on it. Even if you have a wallet, it is recommended you create a new wallet for testing purposes.
+
+> Never use a real wallet with real funds on it for development!
+
+First, lets generate the wallet. We will use the Airnode Admin CLI to generate a mnemonic, but feel free to create a wallet in any way you see fit.
+
+```sh
+npx @api3/airnode-admin generate-mnemonic
+
+# Output
+This mnemonic is created locally on your machine using "ethers.Wallet.createRandom" under the hood.
+Make sure to back it up securely, e.g., by writing it down on a piece of paper:
+
+genius session popular ... # Our mnemonic
+
+The Airnode address for this mnemonic is: 0x1a942424D880... # The public address to our wallet
+The Airnode xpub for this mnemonic is: xpub6BmYykrmWHAhSFk... # The Xpub of our wallet
+```
+
+We will be using the mnemonic and Airnode address (Public Address). Lets add our mnemonic to the `.env` file so that we can use it safely:
+
+```bash
+MNEMONIC="{PASTE 12-WORD MNEMONIC PHRASE HERE}"
+```
+
+Next, we will configure Hardhat to use the Ropsten network and our mnemonic. Inside the `networks` object in our `hardhat.config.js` file, add the following:
+
+```js
+module.exports = {
+  solidity: "0.8.9",
+  networks: {
+    hardhat: {
+      chainId: 3,
+      forking: {
+        url: process.env.RPC_URL,
+      }
+    },
+    ropsten: {
+      url: process.env.RPC_URL, // Reuse our ropsten RPC URL
+      accounts: { mnemonic: process.env.MNEMONIC } // Use our wallet mnemonic
+    }
+  }
+};`
+```
+
+Now we can run all of our commands with the added `--network ropsten` flag without needing to change any code.
+
+#### Get Ropsten Eth
+
+If you attempted to run any commands against Ropsten, chances are that they failed. Thats because we are using our newly generated wallet that doesn't even have the funds to pay for the transaction. We can get some free Ropsten Eth for testing by using a Ropsten Faucet.
+
+I'll be using [This Faucet](https://faucet.egorfine.com/) but feel free to use any faucet you like. We will paste the public address (**Not Mnemonic!**) from our wallet generation step:
+
+[Pic of Faucet]
+
+We can test our accounts in Hardhat by using tasks. Inside of the `hardhat.config.js` file, underneath our imports and above our exports, add the following:
+
+```js
+task(
+  "balance",
+  "Prints the balance of the first account",
+  async (taskArgs, hre) => {
+    const [account] = await hre.ethers.getSigners(); // Get an array of all accounts
+
+    const balance = await account.getBalance(); // Get Eth balance for account in wei
+    console.log(
+      `${account.address}: (${hre.ethers.utils.formatEther(balance)} ETH)` // Print the balance in Ether
+    );
+  }
+);
+```
+
+Now we can run the `balance` task and see the balance of our account:
+
+```bash
+npx hardhat --network ropsten balance
+```
+
+If you followed the faucet steps correctly (and the faucet is currently operating), you should see the balance of our account is greater than 0 ETH.
+
+```bash
+0x0EDA9399c969...: (1 ETH)
+```
+
+#### Use Lottery contract on public chain
+
+We have everything configured to deploy onto a public chain. Lets start with the deployment:
+
+```bash
+npx hardhat --network ropsten deploy
+```
+
+> Keep in mind things will move much slower on the Ropsten network.
+
+Next we will enter our lottery:
+
+```bash
+npx hardhat --network ropsten run ./scripts/enter.js 
+```
+
+And finally, close our lottery:
+
+```bash
+npx hardhat --network ropsten run ./scripts/close.js
+```
