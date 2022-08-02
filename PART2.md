@@ -339,3 +339,49 @@ If everything worked well, we should see a message in the console that says our 
 #### Set sponsor wallet on deployment
 
 We can couple another script with our deployment script so that the `setSponsorWallet` function is called after each deployment. We will start by creating a file in the `deploy` folder called `2_set_sponsorWallet.js`.
+
+We will be using hardhat again, but we will be using the Airnode Admin package in this script. We'll import them at the top:
+
+```js
+const hre = require("hardhat");
+const airnodeAdmin = require("@api3/airnode-admin");
+```
+
+Now lets make our `module.exports` function that sets the sponsor wallet. First we'll use Ethers to get a wallet. We can use `hre.deployments.get` to retrieve past deployments thanks to Hardhat-Deploy. Next, we instantiate our deployed contract within our script. Our deployed contract is ready to be interacted with!
+
+Lets derive our sponsor wallet so that we can pass it into our `setSponsorWallet` function. We can use the `deriveSponsorWalletAddress` function from the Airnode Admin package. It take an Airnode provider's Xpub, and Airnode address, and finally the address of the sponsor which in our case is the contract itself.
+
+Now we can then make the transaction to set the sponsor wallet.
+
+```js
+module.exports = async () => {
+  const [account] = await hre.ethers.getSigners(); // Get the first account from Ethers
+  const Lottery = await hre.deployments.get("Lottery"); // Get the deployed contract
+  const lotteryContract = new hre.ethers.Contract( // Instantiate contract
+    Lottery.address,
+    Lottery.abi, // Interface of the contract
+    account
+  );
+
+  const sponsorWalletAddress = await airnodeAdmin.deriveSponsorWalletAddress(
+    "xpub6DXSDTZBd4aPVXnv6Q3SmnGUweFv6j24SK77W4qrSFuhGgi666awUiXakjXruUSCDQhhctVG7AQt67gMdaRAsDnDXv23bBRKsMWvRzo6kbf", // QRNG xpub
+    "0x9d3C147cA16DB954873A498e0af5852AB39139f2", // QRNG Airnode address
+    lotteryContract.address // Sponsor address
+  );
+  const tx = await lotteryContract.setSponsorWallet(sponsorWalletAddress); // Set the sponsor wallet
+  await tx.wait();
+  console.log(`Sponsor wallet set to: ${sponsorWalletAddress}`);
+};
+```
+
+Now lets add a Hardhat-Deploy tag to our script so that it runs after each deployment:
+
+```js
+module.exports.tags = ["setup"];
+```
+
+Lets try it out!
+
+```bash
+npx hardhat --network localhost deploy
+```
