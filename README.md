@@ -599,3 +599,5 @@ And finally, close our lottery:
 ```bash
 npx hardhat --network ropsten run ./scripts/close.js
 ```
+
+![image](https://user-images.githubusercontent.com/26840412/182447459-4dbda7bc-b703-4453-9242-61b4913b1c3a.png)
