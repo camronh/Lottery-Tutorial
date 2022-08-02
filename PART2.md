@@ -334,7 +334,7 @@ Then, in a separate terminal, we can deploy to our local chain:
 npx hardhat --network localhost deploy
 ```
 
-If everything worked well, we should see a message in the console that says our contract address. We can also check the terminal running the chain for more detailed logging. 
+If everything worked well, we should see a message in the console that says our contract address. We can also check the terminal running the chain for more detailed logging.
 
 > Be sure to leave your blockchain running, as we will be using it throughout the rest of this tutorial.
 
@@ -413,7 +413,7 @@ Inside the `main` funtion, we can put our enter script:
 
 ```js
 const guess = 55; // The number we chose for our lottery entry
-const [account] = await hre.ethers.getSigners(); 
+const [account] = await hre.ethers.getSigners();
 
 const Lottery = await hre.deployments.get("Lottery");
 const lotteryContract = new hre.ethers.Contract(
@@ -423,10 +423,11 @@ const lotteryContract = new hre.ethers.Contract(
 );
 
 const ticketPrice = await lotteryContract.ticketPrice(); // Get the price of a ticket
-const tx = await lotteryContract.enter( // Enter the lottery
-    guess, // Pass in our guess
-    { value: ticketPrice } // Include the ticket price in Eth in the transaction
-); 
+const tx = await lotteryContract.enter(
+  // Enter the lottery
+  guess, // Pass in our guess
+  { value: ticketPrice } // Include the ticket price in Eth in the transaction
+);
 await tx.wait(); // Wait for the transaction to be mined
 const entries = await lotteryContract.getEntriesForNumber(guess, 1); // Get a list of entries for our guess. Our address should be inside
 console.log(`Guesses for ${guess}: ${entries}`);
@@ -438,5 +439,56 @@ We can try it out by running the script against our local deployment:
 npx hardhat --network localhost run scripts/enter.js
 ```
 
+#### Close Lottery script
 
+Next, we need a way for people to call Airnode for a random number when the lottery is closed. We will start by creating a file in the `scripts` folder named `close.js` and adding the boilerplate script code from the last step to it.
+
+In our `main` function, we will instantiate our contract again. We will call the `getWinningNumber` function in our contract to make a random number request. This function emits an event that we can listen to for our requestID that we will use to listen for a response.
+
+When we do hear a response, we can call `winningNumber(1)` to retrieve the winning random number for week 1!
+
+```js
+const Lottery = await hre.deployments.get("Lottery");
+const lotteryContract = new hre.ethers.Contract(
+  Lottery.address,
+  Lottery.abi,
+  (await hre.ethers.getSigners())[0]
+);
+
+console.log("Making request for random number...");
+const receipt = await lotteryContract.getWinningNumber({
+  // We'll use the tx receipt to get the requestID
+  value: ethers.utils.parseEther("0.01"), // Top up the sponsor wallet
+});
+
+// Retrieve request ID from event
+const requestId = await new Promise((resolve) =>
+  hre.ethers.provider.once(receipt.hash, (tx) => {
+    const log = tx.logs.find((log) => log.address === lotteryContract.address);
+    const parsedLog = lotteryContract.interface.parseLog(log);
+    resolve(parsedLog.args.requestId);
+  })
+);
+
+console.log(`Request made! Request ID: ${requestId}`);
+
+// Wait for the fulfillment transaction to be confirmed and read the logs to get the random number
+await new Promise((resolve) =>
+  hre.ethers.provider.once(
+    lotteryContract.filters.ReceivedRandomNumber(requestId, null),
+    resolve
+  )
+);
+
+const winningNumber = await lotteryContract.winningNumber(1); // Get the winning number
+console.log(
+  `Fulfillment is confirmed, random number is ${winningNumber.toString()}`
+);
+```
+
+If we test this against our local chain, we should receive a request ID but no response.
+
+```bash
+npx hardhat --network localhost run scripts/close.js
+```
 
