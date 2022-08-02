@@ -1,6 +1,6 @@
 # Beginners Web3/Solidity/Blockchain Tutorial
 
-In this tutorial we will be walking through building and deploying a decentralized lottery smart contract using Hardhat. In this decentralized app, or dApp, anyone can choose a number 1-65535 and pay the ticket price to enter. They revenue for the ticket sales is collected in the pot in the contract. After 7 days the contract will allow anyone to start the drawing. The contract will call the API3 QRNG for a random number. The pot will be split between all of the users that chose that number. If there was no winners, the pot rolls over to the next week.
+In this tutorial we will be walking through building and deploying a decentralized lottery smart contract using Hardhat. In this decentralized app, or dApp, anyone can choose a number 1-10000 and pay the ticket price to enter. They revenue for the ticket sales is collected in the pot in the contract. After 7 days the contract will allow anyone to start the drawing. The contract will call the API3 QRNG for a random number. The pot will be split between all of the users that chose that number. If there was no winners, the pot rolls over to the next week.
 
 > By the end of this tutorial you should be able to
 
