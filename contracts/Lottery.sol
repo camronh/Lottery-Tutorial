@@ -49,33 +49,7 @@ contract Lottery is RrpRequesterV0, Ownable {
         pot += ticketPrice; // account for the ticket sale in the pot
     }
 
-    /// @notice Close the current week and calculate the winners. Can be called by anyone after the end time has passed.
-    function closeWeek(bytes32 requestId, bytes calldata data)
-        public
-        onlyAirnodeRrp
-    {
-        require(pendingRequestIds[requestId], "No such request made");
-        delete pendingRequestIds[requestId];
-
-
-        uint256 _randomNumber = abi.decode(data, (uint256)) % MAX_NUMBER; // get the random number from the data
-        emit ReceivedRandomNumber(requestId, _randomNumber);
-
-        // require(block.timestamp > endTime, "Lottery is open"); // will prevent duplicate closings. If someone closed it first it will increment the end time and not allow
-
-        winningNumber[week] = _randomNumber;
-        address[] memory winners = tickets[week][_randomNumber]; // get list of addresses that chose the random number this week
-        week++; // increment week counter
-        endTime += 7 days; // set end time for 7 days later
-        if (winners.length > 0) {
-            uint256 earnings = pot / winners.length; // divide pot evenly among winners
-            pot = 0; // reset pot
-            for (uint256 i = 0; i < winners.length; i++) {
-                payable(winners[i]).transfer(earnings); // send earnings to each winner
-            }
-        } 
-    }
-
+    /// @notice Request winning random number from Airnode
     function getWinningNumber() public payable {
         // require(block.timestamp > endTime, "Lottery has not ended"); // not available until end time has passed
         require(msg.value >= 0.01 ether, "Please top up sponsor wallet"); // user needs to send 0.01 ether with the transaction
@@ -90,7 +64,35 @@ contract Lottery is RrpRequesterV0, Ownable {
         );
         pendingRequestIds[requestId] = true;
         emit RequestedRandomNumber(requestId);
-        payable(sponsorWallet).transfer(msg.value);
+        payable(sponsorWallet).transfer(msg.value); // Send funds to sponsor wallet
+    }
+
+    /// @notice Close the current week and calculate the winners. Can be called by anyone after the end time has passed.
+    /// @param requestId the request id of the response from Airnode
+    /// @param data payload returned by Airnode
+    function closeWeek(bytes32 requestId, bytes calldata data)
+        public
+        onlyAirnodeRrp
+    {
+        require(pendingRequestIds[requestId], "No such request made");
+        delete pendingRequestIds[requestId]; // remove request id from pending request ids
+
+        uint256 _randomNumber = abi.decode(data, (uint256)) % MAX_NUMBER; // get the random number from the data
+        emit ReceivedRandomNumber(requestId, _randomNumber); // emit the random number as an event
+
+        // require(block.timestamp > endTime, "Lottery is open"); // will prevent duplicate closings. If someone closed it first it will increment the end time and not allow
+
+        winningNumber[week] = _randomNumber;
+        address[] memory winners = tickets[week][_randomNumber]; // get list of addresses that chose the random number this week
+        week++; // increment week counter
+        endTime += 7 days; // set end time for 7 days later
+        if (winners.length > 0) {
+            uint256 earnings = pot / winners.length; // divide pot evenly among winners
+            pot = 0; // reset pot
+            for (uint256 i = 0; i < winners.length; i++) {
+                payable(winners[i]).transfer(earnings); // send earnings to each winner
+            }
+        }
     }
 
     /// @notice Read only function to get addresses entered into a specific number for a specific week
