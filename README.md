@@ -520,7 +520,7 @@ The Airnode xpub for this mnemonic is: xpub6BmYykrmWHAhSFk... # The Xpub of our 
 We will be using the mnemonic and Airnode address (Public Address). Lets add our mnemonic to the `.env` file so that we can use it safely:
 
 ```bash
-MNEMONIC="{PASTE 12-WORD MNEMONIC PHRASE HERE}"
+MNEMONIC="genius session popular ..."
 ```
 
 Next, we will configure Hardhat to use the Ropsten network and our mnemonic. Inside the `networks` object in our `hardhat.config.js` file, add the following:
