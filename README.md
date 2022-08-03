@@ -31,12 +31,6 @@ Now add the following to the top of you `hardhat.config.js` file to use the Infu
 require("dotenv").config();
 ```
 
-We can tell git to ignore the `.env` file by adding the following to a `.gitignore` file:
-
-```text
-.env
-```
-
 #### 2. Configure Hardhat to use forking
 
 By adding the following to our `module.exports` in the `hardhat.config.js` file, we tell hardhat to make a copy of the Ropsten network for use in local testing:
