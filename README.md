@@ -39,11 +39,9 @@ By adding the following to our `module.exports` in the `hardhat.config.js` file,
 module.exports = {
   solidity: "0.8.9",
   networks: {
-    hardhat: {
-      // Hardhat local network
+    hardhat: { // Hardhat local network
       chainId: 3, // Force the ChainID to be 3 (Ropsten) in testing
-      forking: {
-        // Configure the forking behavior
+      forking: { // Configure the forking behavior
         url: process.env.RPC_URL, // Using the RPC_URL from the .env file
       },
     },
