@@ -31,12 +31,6 @@ Now add the following to the top of you `hardhat.config.js` file to use the Infu
 require("dotenv").config();
 ```
 
-We can tell git to ignore the `.env` file by adding the following to a `.gitignore` file:
-
-```text
-.env
-```
-
 #### 2. Configure Hardhat to use forking
 
 By adding the following to our `module.exports` in the `hardhat.config.js` file, we tell hardhat to make a copy of the Ropsten network for use in local testing:
@@ -45,11 +39,9 @@ By adding the following to our `module.exports` in the `hardhat.config.js` file,
 module.exports = {
   solidity: "0.8.9",
   networks: {
-    hardhat: {
-      // Hardhat local network
+    hardhat: { // Hardhat local network
       chainId: 3, // Force the ChainID to be 3 (Ropsten) in testing
-      forking: {
-        // Configure the forking behavior
+      forking: { // Configure the forking behavior
         url: process.env.RPC_URL, // Using the RPC_URL from the .env file
       },
     },
@@ -152,11 +144,19 @@ function setSponsorWallet(address _sponsorWallet) public onlyOwner {
 
 #### 3. Test
 
-We'll be deriving our sponsor wallet using the `@api3/airnode-admin` package. We can import it into our `tests/Lottery.js` file:
+We'll be deriving our sponsor wallet using the `@api3/airnode-admin` package. We can install it with the following command:
+
+```bash
+npm install @api3/airnode-admin
+```
+
+Then we can import it into our `tests/Lottery.js` file:
 
 ```js
 const airnodeAdmin = require("@api3/airnode-admin");
 ```
+
+
 
 We will hardcode the [ANU QRNG Xpub and Airnode Address](https://docs.api3.org/qrng/reference/providers.html) to derive our sponsor wallet address.
 Add the following test inside the "Deployment" tests:
@@ -494,6 +494,7 @@ If we test this against our local chain, we should receive a request ID but no r
 ```bash
 npx hardhat --network localhost run scripts/close.js
 ```
+> You can kill the process after the request Id is returned.
 
 #### 3. Set up Ropsten
 
@@ -519,7 +520,7 @@ The Airnode xpub for this mnemonic is: xpub6BmYykrmWHAhSFk... # The Xpub of our 
 We will be using the mnemonic and Airnode address (Public Address). Lets add our mnemonic to the `.env` file so that we can use it safely:
 
 ```bash
-MNEMONIC="{PASTE 12-WORD MNEMONIC PHRASE HERE}"
+MNEMONIC="genius session popular ..."
 ```
 
 Next, we will configure Hardhat to use the Ropsten network and our mnemonic. Inside the `networks` object in our `hardhat.config.js` file, add the following:
@@ -539,7 +540,7 @@ module.exports = {
       accounts: { mnemonic: process.env.MNEMONIC } // Use our wallet mnemonic
     }
   }
-};`
+};
 ```
 
 Now we can run all of our commands with the added `--network ropsten` flag without needing to change any code.
@@ -575,7 +576,7 @@ Now we can run the `balance` task and see the balance of our account:
 npx hardhat --network ropsten balance
 ```
 
-If you followed the faucet steps correctly (and the faucet is currently operating), you should see the balance of our account is greater than 0 ETH.
+If you followed the faucet steps correctly (and the faucet is currently operating), you should see the balance of our account is greater than 0 ETH. If not, you may need to wait a little bit longer or try a different faucet.
 
 ```bash
 0x0EDA9399c969...: (1 ETH)
