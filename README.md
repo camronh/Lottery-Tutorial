@@ -576,7 +576,7 @@ Now we can run the `balance` task and see the balance of our account:
 npx hardhat --network ropsten balance
 ```
 
-If you followed the faucet steps correctly (and the faucet is currently operating), you should see the balance of our account is greater than 0 ETH.
+If you followed the faucet steps correctly (and the faucet is currently operating), you should see the balance of our account is greater than 0 ETH. If not, you may need to wait a little bit longer or try a different faucet.
 
 ```bash
 0x0EDA9399c969...: (1 ETH)
