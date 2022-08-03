@@ -494,6 +494,7 @@ If we test this against our local chain, we should receive a request ID but no r
 ```bash
 npx hardhat --network localhost run scripts/close.js
 ```
+> You can kill the process after the request Id is returned.
 
 #### 3. Set up Ropsten
 
