@@ -144,11 +144,19 @@ function setSponsorWallet(address _sponsorWallet) public onlyOwner {
 
 #### 3. Test
 
-We'll be deriving our sponsor wallet using the `@api3/airnode-admin` package. We can import it into our `tests/Lottery.js` file:
+We'll be deriving our sponsor wallet using the `@api3/airnode-admin` package. We can install it with the following command:
+
+```bash
+npm install @api3/airnode-admin
+```
+
+Then we can import it into our `tests/Lottery.js` file:
 
 ```js
 const airnodeAdmin = require("@api3/airnode-admin");
 ```
+
+
 
 We will hardcode the [ANU QRNG Xpub and Airnode Address](https://docs.api3.org/qrng/reference/providers.html) to derive our sponsor wallet address.
 Add the following test inside the "Deployment" tests:
