@@ -4,7 +4,7 @@ In this tutorial we will be walking through building and deploying a decentraliz
 
 > By the end of this tutorial you should be able to
 
-Deploy a decentralized lottery smart contract to the Rinkeby testnet that uses Quantum Randomness.
+Deploy a decentralized lottery smart contract to the Ropsten testnet that uses Quantum Randomness.
 
 > Who is this tutorial for?
 
