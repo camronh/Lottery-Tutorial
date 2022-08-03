@@ -540,7 +540,7 @@ module.exports = {
       accounts: { mnemonic: process.env.MNEMONIC } // Use our wallet mnemonic
     }
   }
-};`
+};
 ```
 
 Now we can run all of our commands with the added `--network ropsten` flag without needing to change any code.
