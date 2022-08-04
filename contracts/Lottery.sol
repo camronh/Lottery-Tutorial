@@ -19,7 +19,10 @@ contract Lottery is RrpRequesterV0, Ownable {
         0x9d3C147cA16DB954873A498e0af5852AB39139f2;
     bytes32 public constant endpointId =
         0xfb6d017bb87991b7495f563db3c8cf59ff87b09781947bb1e417006ad7f55a78;
-    address public sponsorWallet;
+    address payable public sponsorWallet;
+
+    // Errors
+    error EndTimeReached(uint256 lotteryEndTime);
 
     // Mappings
     mapping(uint256 => mapping(uint256 => address[])) public tickets; // mapping of week => entry number choice => list of addresses that bought that entry number
@@ -27,30 +30,33 @@ contract Lottery is RrpRequesterV0, Ownable {
     mapping(bytes32 => bool) public pendingRequestIds; // mapping to store pending request ids
 
     /// @notice Initialize the contract with a set day and time of the week winners can be chosen
-    /// @param _endTime date and time when the lottery becomes closable
+    /// @param _endTime Unix time when the lottery becomes closable
     constructor(uint256 _endTime, address _airnodeRrpAddress)
         RrpRequesterV0(_airnodeRrpAddress)
     {
-        require(_endTime > block.timestamp, "End time must be in the future");
+        if (_endTime <= block.timestamp) revert EndTimeReached(_endTime);
         endTime = _endTime; // store the end time of the lottery
     }
 
-    function setSponsorWallet(address _sponsorWallet) public onlyOwner {
+    function setSponsorWallet(address payable _sponsorWallet)
+        external
+        onlyOwner
+    {
         sponsorWallet = _sponsorWallet;
     }
 
     /// @notice Buy a ticket for the current week
-    /// @param _number The number to buy a ticket for
-    function enter(uint256 _number) public payable {
+    /// @param _number The participant's chosen lottery number for which they're buying a ticket
+    function enter(uint256 _number) external payable {
         require(_number <= MAX_NUMBER, "Number must be 1-MAX_NUMBER"); // guess has to be between 1 and MAX_NUMBER
-        require(block.timestamp < endTime, "Lottery has ended"); // lottery has to be open
+        if (block.timestamp >= endTime) revert EndTimeReached(endTime); // lottery has to be open
         require(msg.value == ticketPrice, "Ticket price is 0.0001 ether"); // user needs to send 0.0001 ether with the transaction
         tickets[week][_number].push(msg.sender); // add user's address to list of entries for their number under the current week
         pot += ticketPrice; // account for the ticket sale in the pot
     }
 
     /// @notice Request winning random number from Airnode
-    function getWinningNumber() public payable {
+    function getWinningNumber() external payable {
         // require(block.timestamp > endTime, "Lottery has not ended"); // not available until end time has passed
         require(msg.value >= 0.01 ether, "Please top up sponsor wallet"); // user needs to send 0.01 ether with the transaction
         bytes32 requestId = airnodeRrp.makeFullRequest(
@@ -64,14 +70,14 @@ contract Lottery is RrpRequesterV0, Ownable {
         );
         pendingRequestIds[requestId] = true;
         emit RequestedRandomNumber(requestId);
-        payable(sponsorWallet).transfer(msg.value); // Send funds to sponsor wallet
+        sponsorWallet.call{value: msg.value}(""); // Send funds to sponsor wallet
     }
 
     /// @notice Close the current week and calculate the winners. Can be called by anyone after the end time has passed.
     /// @param requestId the request id of the response from Airnode
     /// @param data payload returned by Airnode
     function closeWeek(bytes32 requestId, bytes calldata data)
-        public
+        external
         onlyAirnodeRrp
     {
         require(pendingRequestIds[requestId], "No such request made");
@@ -84,13 +90,18 @@ contract Lottery is RrpRequesterV0, Ownable {
 
         winningNumber[week] = _randomNumber;
         address[] memory winners = tickets[week][_randomNumber]; // get list of addresses that chose the random number this week
-        week++; // increment week counter
+        unchecked {
+            ++week; // increment week counter, will not overflow on human timelines
+        }
         endTime += 7 days; // set end time for 7 days later
         if (winners.length > 0) {
             uint256 earnings = pot / winners.length; // divide pot evenly among winners
             pot = 0; // reset pot
-            for (uint256 i = 0; i < winners.length; i++) {
-                payable(winners[i]).transfer(earnings); // send earnings to each winner
+            for (uint256 i = 0; i < winners.length; ) {
+                payable(winners[i]).call{value: earnings}(""); // send earnings to each winner
+                unchecked {
+                    ++i;
+                }
             }
         }
     }
