@@ -9,7 +9,7 @@ We will be using the [Airnode Request-Response Protocol (RRP)](https://docs.api3
 
 ### Forking
 
-As mentioned in Part 1, [Hardhat](https://hardhat.org/) is an [Ethereum development environment](https://ethereum.org/en/developers/docs/development-networks/) that allows us to deploy smart contracts to public Ethereum networks, and in this case, spin up a locally running Ethereum blockchain instance for testing our deployed contract. We can do this by configuring Hardhat to ["fork"](https://hardhat.org/hardhat-network/docs/guides/forking-other-networks) the [Goerli testnet](https://ethereum.org/en/developers/docs/networks/#goerli), which will simulate the ["state"](https://ethereum.org/en/developers/docs/evm/#state) of the public network locally by fetching the data and exposing it transparently. We'll also need to connect to an [Ethereum archive node](https://www.alchemy.com/overviews/archive-nodes) to use this feature. We'll be using [Alchemy](https://www.alchemy.com/) below as our blockchain RPC node provider.
+As mentioned in Part 1, [Hardhat](https://hardhat.org/) is an [Ethereum development environment](https://ethereum.org/en/developers/docs/development-networks/) that allows us to deploy smart contracts to public Ethereum networks, and in this case, spin up a locally running Ethereum blockchain instance for testing our deployed contract. We can do this by configuring Hardhat to [fork](https://hardhat.org/hardhat-network/docs/guides/forking-other-networks) the [Goerli testnet](https://ethereum.org/en/developers/docs/networks/#goerli), which will simulate the [state](https://ethereum.org/en/developers/docs/evm/#state) of the public network locally by fetching the data and exposing it transparently. We'll also need to connect to an [Ethereum archive node](https://www.alchemy.com/overviews/archive-nodes) to use this feature. We'll be using [Alchemy](https://www.alchemy.com/) below as our blockchain RPC node provider.
 
 
 #### 1. DotEnv
@@ -48,11 +48,9 @@ By adding the following to our `module.exports` in the `hardhat.config.js` file,
 module.exports = {
   solidity: "0.8.9",
   networks: {
-    hardhat: {
-      // Hardhat local network
+    hardhat: { // Hardhat local network
       chainId: 5, // Force the ChainID to be 5 (Goerli) in testing
-      forking: {
-        // Configure the forking behavior
+      forking: { // Configure the forking behavior
         url: process.env.RPC_URL, // Using the RPC_URL from the .env file
       },
     },
@@ -122,9 +120,9 @@ Run `npx hardhat test` to check that your code passes all 3 tests before moving 
 
 ### Set up Airnode
 
-#### 1. Params
+#### 1. Parameters
 
-We need to store the [Airnode Params](https://docs.api3.org/qrng/reference/providers.html) in the contract. In the `Lottery.sol` contract, add the following to the global variables:
+[Airnode Parameters](https://docs.api3.org/qrng/reference/providers.html) need to be stored in the contract. In the `Lottery.sol` contract, add the following to the global variables:
 
 ```solidity
 address public constant airnodeAddress =  0x9d3C147cA16DB954873A498e0af5852AB39139f2;
