@@ -16,7 +16,7 @@ npm init -y
 
 #### 2. Install Hardhat
 
-[Hardhat](https://hardhat.org/) is a npm library with a built-in local Ethereum network node that allows you to work with smart contracts. Since it will only be used for development purposes, we can install it as a development dependency:
+[Hardhat](https://hardhat.org/) is a npm library with a built-in local Ethereum network node that allows you to work with smart contracts. Because it will only be used for development purposes, we can install it as a development dependency:
 
 ```
 npm install -D hardhat
@@ -24,7 +24,7 @@ npm install -D hardhat
 
 #### 3. Initialize the Hardhat project
 
-We will use the Hardhat CLI to create a boilerplate Web3 project: 
+We'll use the Hardhat CLI to create a boilerplate Web3 project: 
 
 ```
 npx hardhat
@@ -109,7 +109,7 @@ Users can call this function with a number 1-10000 and a value of 0.001 ether to
 
 #### 7. Create a function to mock the QRNG picking the winners
 
-Before we decentralize our lottery, let's mock the random number generation so that we can test the contract's functionality. We will be 
+Before we decentralize our lottery, let's mock the random number generation so that we can test the contract's functionality. We'll be 
 decentralizing this function in [Part 2](https://github.com/camronh/Lottery-Tutorial/tree/Part2) of this tutorial by using the [API3 QRNG](https://docs.api3.org/qrng/).
 
 ```solidity
@@ -170,7 +170,7 @@ describe("Lottery", function () {
 
 We can use `npx hardhat test` to run the test.
 
-Lets add a few more tests but feel free to add any/all of the relevant tests from the [completed test file](https://github.com/camronh/Lottery-Tutorial/blob/Part1/test/Lottery.js).
+Let's add a few more tests but feel free to add any/all of the relevant tests from the [completed test file](https://github.com/camronh/Lottery-Tutorial/blob/Part1/test/Lottery.js).
 
 ```JavaScript
 describe("Lottery", function () {
