@@ -3,18 +3,18 @@
 In [Part 1](https://github.com/camronh/Lottery-Tutorial/tree/Part1) we created the functionality for our lottery dApp. In Part 2, we'll
 be integrating the [API3 QRNG](https://api3.org/QRNG) into our contract and deploying it onto the [Goerli public testnet](https://ethereum.org/en/developers/docs/networks/#goerli). 
 
-We will be using the [Airnode Request-Response Protocol (RRP)](https://docs.api3.org/airnode/v0.7/concepts/) to get the random numbers onto the blockchain for the lottery. API3 QRNG is an Airnode [first-party oracle](https://docs.api3.org/api3/introduction/first-party-oracles.html) serving these random numbers from Australian National University for blockchain and Web3 use-cases. Check our [API3 docs](https://docs.api3.org/api3/) to learn more about API3 and get an [overview of Airnode](https://docs.api3.org/airnode/v0.7/).  
+We will be using the [Airnode Request-Response Protocol (RRP)](https://docs.api3.org/airnode/v0.7/concepts/) to get the random numbers onto the blockchain for the lottery. API3 QRNG is an Airnode [first-party oracle](https://docs.api3.org/api3/introduction/first-party-oracles.html) serving these random numbers from the Australian National University for blockchain and Web3 use-cases. Check our [API3 docs](https://docs.api3.org/api3/) to learn more about API3 and get an [overview of Airnode](https://docs.api3.org/airnode/v0.7/).  
 
 ## Instructions
 
 ### Forking
 
-As mentioned in Part 1, [Hardhat](https://hardhat.org/) is an [Ethereum development environment](https://ethereum.org/en/developers/docs/development-networks/) that allows us to deploy smart contracts to public Ethereum networks, and in this case, spin up a locally running Ethereum blockchain instance for testing our deployed contract. We can do this by configuring Hardhat to [fork](https://hardhat.org/hardhat-network/docs/guides/forking-other-networks) the [Goerli testnet](https://ethereum.org/en/developers/docs/networks/#goerli), which will simulate the [state](https://ethereum.org/en/developers/docs/evm/#state) of the public network locally by fetching the data and exposing it transparently. We'll also need to connect to an [Ethereum archive node](https://www.alchemy.com/overviews/archive-nodes) to use this feature. We'll be using [Alchemy](https://www.alchemy.com/) below as our blockchain RPC node provider.
+As mentioned in Part 1, [Hardhat](https://hardhat.org/) is an [Ethereum development environment](https://ethereum.org/en/developers/docs/development-networks/) that allows us to deploy smart contracts to public Ethereum networks, and in this case, spin up a locally running Ethereum blockchain instance for testing our deployed contract. We can do this by configuring Hardhat to ["fork"](https://hardhat.org/hardhat-network/docs/guides/forking-other-networks) the [Goerli testnet](https://ethereum.org/en/developers/docs/networks/#goerli), which will simulate the [state](https://ethereum.org/en/developers/docs/evm/#state) of the public network locally by fetching the data and exposing it transparently. We'll also need to connect to an [Ethereum archive node](https://www.alchemy.com/overviews/archive-nodes) to use this feature. We'll be using [Alchemy](https://www.alchemy.com/) below as our blockchain RPC node provider.
 
 
 #### 1. DotEnv
 
-We are going to be using sensitive credentials in the next steps. We will be using the [DotEnv](https://www.npmjs.com/package/dotenv) package to store those credentials as environment variables separately from our application code.
+We're going to use sensitive credentials in the next steps. We'll be using the [DotEnv](https://www.npmjs.com/package/dotenv) package to store those credentials as environment variables separately from our application code.
 
 ```bash
 npm install dotenv
@@ -22,7 +22,7 @@ npm install dotenv
 
 Next, make a `.env` file at the root of your project.
 
-Make an [Alchemy](https://www.alchemy.com/) account. Click the "CREATE APP" button and select the Goerli testnet from the dropdown menu, as the rest of the available testnets are [deprecated or will soon be deprecated](https://blog.ethereum.org/2022/06/21/testnet-deprecation/). Insert your newly-generated Goerli RPC endpoint URL to your `.env` file:
+We'll need a blockchain RPC provider, such as Alchemy. Make an [Alchemy](https://www.alchemy.com/) account. Click the "CREATE APP" button and select the Goerli testnet from the dropdown menu, as the rest of the available testnets are [deprecated or will soon be deprecated](https://blog.ethereum.org/2022/06/21/testnet-deprecation/). Insert your newly-generated Goerli RPC endpoint URL to your `.env` file:
 .
 ```text
 RPC_URL="{PUT RPC URL HERE}"
