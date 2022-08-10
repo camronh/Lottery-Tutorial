@@ -22,7 +22,7 @@ npm install dotenv
 
 Next, make a `.env` file at the root of your project.
 
-We'll need a blockchain RPC provider, such as Alchemy. Make an [Alchemy](https://www.alchemy.com/) account. Click the "CREATE APP" button and select the Goerli testnet from the dropdown menu, as the rest of the available testnets are [deprecated or will soon be deprecated](https://blog.ethereum.org/2022/06/21/testnet-deprecation/). Insert your newly-generated Goerli RPC endpoint URL to your `.env` file:
+Make an [Alchemy](https://www.alchemy.com/) account. Click the "CREATE APP" button and select the Goerli testnet from the dropdown menu, as the rest of the available testnets are [deprecated or will soon be deprecated](https://blog.ethereum.org/2022/06/21/testnet-deprecation/). Insert your newly-generated Goerli RPC endpoint URL to your `.env` file:
 .
 ```text
 RPC_URL="{PUT RPC URL HERE}"
@@ -60,6 +60,8 @@ module.exports = {
 
 ### Turn contract into an [Airnode Requester](https://docs.api3.org/airnode/v0.7/concepts/requester.html)
 
+As a requester, our `Lottery.sol` contract will make requests to an Airnode, specifically the API3 QRNG, using the [Request-Response Protocol (RRP)](https://docs.api3.org/airnode/v0.7/concepts/). It may be helpful to take a little time familiarize yourself if you haven't already. 
+
 #### 1. Install dependencies
 
 ```bash
@@ -81,7 +83,7 @@ contract Lottery is RrpRequesterV0{
 
 #### 3. Modify our constructor
 
-We need to set the [address](https://docs.api3.org/airnode/v0.7/reference/airnode-addresses.html) of the Airnode RRP contract we are using. We can do that in the constructor by making it an argument for deployment:
+We need to set the public [address](https://docs.api3.org/airnode/v0.7/reference/airnode-addresses.html) of the Airnode RRP contract on the blockchain that we're using. We can do this in the constructor by making it an argument for deployment:
 
 ```solidity
 constructor(uint256 _endTime, address _airnodeRrpAddress)
@@ -100,7 +102,7 @@ At the top of the `test/Lottery.js` file, import the [Airnode protocol package](
 const airnodeProtocol = require("@api3/airnode-protocol");
 ```
 
-We need to pass the address of the RRP contract into the constructor. We can do that by adding the following to our "Deploys" test:
+We need to pass the [address](https://docs.api3.org/airnode/v0.7/reference/airnode-addresses.html) of the RRP contract into the constructor. We can do that by adding the following to our "Deploys" test:
 
 ```js
 it("Deploys", async function () {
@@ -122,7 +124,7 @@ Run `npx hardhat test` to check that your code passes all 3 tests before moving 
 
 #### 1. Parameters
 
-[Airnode Parameters](https://docs.api3.org/qrng/reference/providers.html) need to be stored in the contract. In the `Lottery.sol` contract, add the following to the global variables:
+[Airnode Parameters](https://docs.api3.org/airnode/v0.7/grp-developers/call-an-airnode.html#request-parameters) need to be stored in our contract. In `Lottery.sol`, add the following to the global variables:
 
 ```solidity
 address public constant airnodeAddress =  0x9d3C147cA16DB954873A498e0af5852AB39139f2;
@@ -130,11 +132,15 @@ bytes32 public constant endpointId = 0xfb6d017bb87991b7495f563db3c8cf59ff87b0978
 address public sponsorWallet; // We will store the sponsor wallet here later
 ```
 
+The `airnodeAddress` and `endpointID` of a particular Airnode can be found in the documentation of the API provider, which in this case is [API3 QRNG] (https://docs.api3.org/qrng/reference/providers.html#anu-quantum-random-numbers).
+
 #### 2. Set the [sponsor wallet](https://docs.api3.org/airnode/v0.7/concepts/sponsor.html#sponsorwallet)
 
-We need to make the contract [Ownable](https://docs.openzeppelin.com/contracts/4.x/api/access#Ownable). That will allow us to restrict access for setting the [`sponsorWallet`](https://docs.api3.org/airnode/v0.7/concepts/sponsor.html#sponsorwallet) to the contract owner.
+To pay for the fulfillment of Airnode requests, we'll need to [sponsor the requester](https://docs.api3.org/airnode/v0.7/grp-developers/requesters-sponsors.html), our `Lottery.sol` contract.
 
-First, import the `Ownable` contract at the top of the `Lottery.sol` contract:
+ We'll need to make our contract "Ownable". That will allow us to restrict access for setting the [`sponsorWallet`](https://docs.api3.org/airnode/v0.7/concepts/sponsor.html#sponsorwallet) to the contract owner (us).
+
+First, import the [`Ownable` contract](https://docs.openzeppelin.com/contracts/4.x/api/access#Ownable) at the top of the `Lottery.sol` contract:
 
 ```solidity
 import "@api3/airnode-protocol/contracts/rrp/requesters/RrpRequesterV0.sol";
@@ -143,7 +149,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 contract Lottery is RrpRequesterV0, Ownable {
 ```
 
-Now we can make our `setSponsorWallet` function and attach the `onlyOwner` modifier to restrict access:
+Then we can make our `setSponsorWallet` function and attach the `onlyOwner` modifier to restrict access:
 
 ```solidity
 function setSponsorWallet(address _sponsorWallet) public onlyOwner {
@@ -153,13 +159,13 @@ function setSponsorWallet(address _sponsorWallet) public onlyOwner {
 
 #### 3. Test
 
-We'll be deriving our `sponsorWallet` using the `@api3/airnode-admin` package. We can import it into our `tests/Lottery.js` file:
+We'll be deriving our `sponsorWallet` using functions from the [`@api3/airnode-admin` package/CLI tool](https://docs.api3.org/airnode/v0.7/reference/packages/admin-cli.html). We can import it into our `tests/Lottery.js` file:
 
 ```js
 const airnodeAdmin = require("@api3/airnode-admin");
 ```
 
-We will hardcode the [ANU QRNG Xpub and Airnode Address](https://docs.api3.org/qrng/reference/providers.html) to derive our `sponsorWalletAddress`.
+We'll hardcode the [ANU QRNG Xpub and Airnode Address](https://docs.api3.org/qrng/reference/providers.html) to [derive our `sponsorWalletAddress`(https://docs.api3.org/airnode/v0.7/grp-developers/requesters-sponsors.html#how-to-derive-a-sponsor-wallet)]. 
 Add the following test inside the "Deployment" tests:
 
 ```js
