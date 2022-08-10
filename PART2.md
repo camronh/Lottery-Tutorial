@@ -132,7 +132,7 @@ bytes32 public constant endpointId = 0xfb6d017bb87991b7495f563db3c8cf59ff87b0978
 address public sponsorWallet; // We will store the sponsor wallet here later
 ```
 
-The `airnodeAddress` and `endpointID` of a particular Airnode can be found in the documentation of the API provider, which in this case is [API3 QRNG] (https://docs.api3.org/qrng/reference/providers.html#anu-quantum-random-numbers).
+The `airnodeAddress` and `endpointID` of a particular Airnode can be found in the documentation of the API provider, which in this case is [API3 QRNG](https://docs.api3.org/qrng/reference/providers.html#anu-quantum-random-numbers).
 
 #### 2. Set the [sponsor wallet](https://docs.api3.org/airnode/v0.7/concepts/sponsor.html#sponsorwallet)
 
@@ -165,7 +165,7 @@ We'll be deriving our `sponsorWallet` using functions from the [`@api3/airnode-a
 const airnodeAdmin = require("@api3/airnode-admin");
 ```
 
-We'll hardcode the [ANU QRNG Xpub and Airnode Address](https://docs.api3.org/qrng/reference/providers.html) to [derive our `sponsorWalletAddress`(https://docs.api3.org/airnode/v0.7/grp-developers/requesters-sponsors.html#how-to-derive-a-sponsor-wallet)]. 
+We'll hardcode the [ANU QRNG Xpub and Airnode Address](https://docs.api3.org/qrng/reference/providers.html) to [derive our `sponsorWalletAddress`](https://docs.api3.org/airnode/v0.7/grp-developers/requesters-sponsors.html#how-to-derive-a-sponsor-wallet). 
 Add the following test inside the "Deployment" tests:
 
 ```js
