@@ -136,11 +136,11 @@ The `airnodeAddress` and `endpointID` of a particular Airnode can be found in th
 
 #### 2. Set the [sponsor wallet](https://docs.api3.org/airnode/v0.7/concepts/sponsor.html#sponsorwallet)
 
-To pay for the fulfillment of Airnode requests, we'll need to [sponsor the requester](https://docs.api3.org/airnode/v0.7/grp-developers/requesters-sponsors.html), our `Lottery.sol` contract.
+To pay for the fulfillment of Airnode requests, normally we'll need to [sponsor the requester](https://docs.api3.org/airnode/v0.7/grp-developers/requesters-sponsors.html), our `Lottery.sol` contract. In this case, if we use the contract address itself as the `sponsorAddress`, it automatically sponsors itself. 
 
- We'll need to make our contract "Ownable". That will allow us to restrict access for setting the [`sponsorWallet`](https://docs.api3.org/airnode/v0.7/concepts/sponsor.html#sponsorwallet) to the contract owner (us).
+ We'll need to make our contract "Ownable". That will allow us to restrict access for setting the [`sponsorWallet`](https://docs.api3.org/airnode/v0.7/concepts/sponsor.html#sponsorwallet) to the contract owner (the wallet/account that deployed the contract). Note that `sponsorWallet` is different than a `sponsorAddress`.
 
-First, import the [`Ownable` contract](https://docs.openzeppelin.com/contracts/4.x/api/access#Ownable) at the top of the `Lottery.sol` contract:
+First, import the [`Ownable` contract](https://docs.openzeppelin.com/contracts/4.x/api/access#Ownable) at the top of `Lottery.sol`:
 
 ```solidity
 import "@api3/airnode-protocol/contracts/rrp/requesters/RrpRequesterV0.sol";
@@ -159,13 +159,13 @@ function setSponsorWallet(address _sponsorWallet) public onlyOwner {
 
 #### 3. Test
 
-We'll be deriving our `sponsorWallet` using functions from the [`@api3/airnode-admin` package/CLI tool](https://docs.api3.org/airnode/v0.7/reference/packages/admin-cli.html). We can import it into our `tests/Lottery.js` file:
+We'll be deriving our `sponsorWallet` used for funding Airnode transactions using functions from the [`@api3/airnode-admin` package/CLI tool](https://docs.api3.org/airnode/v0.7/reference/packages/admin-cli.html). We can import it into our `tests/Lottery.js` file:
 
 ```js
 const airnodeAdmin = require("@api3/airnode-admin");
 ```
 
-We'll hardcode the [ANU QRNG Xpub and Airnode Address](https://docs.api3.org/qrng/reference/providers.html) to [derive our `sponsorWalletAddress`](https://docs.api3.org/airnode/v0.7/grp-developers/requesters-sponsors.html#how-to-derive-a-sponsor-wallet). 
+We'll hardcode the [ANU QRNG's Xpub and Airnode Address](https://docs.api3.org/qrng/reference/providers.html) to [derive our `sponsorWalletAddress`](https://docs.api3.org/airnode/v0.7/grp-developers/requesters-sponsors.html#how-to-derive-a-sponsor-wallet). 
 Add the following test inside the "Deployment" tests:
 
 ```js
@@ -173,10 +173,10 @@ it("Sets sponsor wallet", async function () {
   const sponsorWalletAddress = await airnodeAdmin.deriveSponsorWalletAddress(
     "xpub6DXSDTZBd4aPVXnv6Q3SmnGUweFv6j24SK77W4qrSFuhGgi666awUiXakjXruUSCDQhhctVG7AQt67gMdaRAsDnDXv23bBRKsMWvRzo6kbf", // ANU Xpub
     "0x9d3C147cA16DB954873A498e0af5852AB39139f2", // ANU Airnode Address
-    lotteryContract.address
+    lotteryContract.address // used as sponsorAddress 
   );
   await expect(
-    lotteryContract.connect(accounts[1]).setSponsorWallet(sponsorWalletAddress)
+    lotteryContract.connect(accounts[1]).setSponsorWallet(sponsorWalletAddress) // we deployed the lottery contract with the first account
   ).to.be.reverted; // onlyOwner should be able to call this function
 
   await lotteryContract.setSponsorWallet(sponsorWalletAddress);
@@ -209,7 +209,7 @@ function getWinningNumber() public payable {
 }
 ```
 
-We'll leave line 2 commented out for ease of testing. In lines 4-12 we're making a request to the API3 QRNG for a single random number. In line 15 we transfer the gas funds to the sponsor wallet so Airnode has the gas to return the random number on-chain.
+We'll leave line 2 commented out for ease of testing. In lines 4-12 we're making a [request](https://docs.api3.org/airnode/v0.7/concepts/request.html#request-parameters) to the API3 QRNG for a single random number. In line 15 we transfer the ether to the sponsor wallet that will pay the gas fees for Airnode to return the random number on-chain.
 
 #### 1. Map pending request IDs
 
