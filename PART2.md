@@ -211,9 +211,9 @@ function getWinningNumber() public payable {
 
 We'll leave line 2 commented out for ease of testing. In lines 4-12 we're making a [request](https://docs.api3.org/airnode/v0.7/concepts/request.html#request-parameters) to the API3 QRNG for a single random number. In line 15 we transfer the ether to the sponsor wallet that will pay the gas fees for Airnode to return the random number on-chain.
 
-#### 1. Map pending request IDs
+#### 1. Map pending [request IDs](https://docs.api3.org/airnode/v0.7/concepts/request.html#requestid)
 
-In line 13 we are storing the `requestId` in a mapping. This will allow us to check whether or not the request is pending. Let's add the following under our mappings:
+In line 13 we are storing the [`requestId`](https://docs.api3.org/airnode/v0.7/concepts/request.html#requestid) in a mapping. This will allow us to check whether or not the request is pending. Let's add the following under our mappings:
 
 ```solidity
 mapping (bytes32 => bool) public pendingRequestIds;
