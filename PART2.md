@@ -553,11 +553,11 @@ Now we can run all of our commands with the added `--network mumbai` flag withou
 
 #### 4. Get Mumbai Matic
 
-If you attempted to run any commands against Mumbai, chances are that they failed. Thats because we are using our newly generated wallet that doesn't even have the funds to pay for the transaction. We can get some free Mumbai Matic for testing by using the Polygon [Mumbai faucet](https://faucet.polygon.technology/) and the [Alchemy Mumbai Faucet](https://mumbaifaucet.com/).
+If you attempted to run any commands against Mumbai, chances are that they failed. Thats because we are using our newly generated wallet that doesn't even have the funds to pay for the transaction. We can get some free Mumbai Matic for testing by using the Polygon [Mumbai faucet](https://faucet.polygon.technology/) or the [Alchemy Mumbai Faucet](https://mumbaifaucet.com/).
 
 If following these steps with Goerli, you'll need to use a Goerli faucet.[This faucet](https://goerlifaucet.com/) requires an Alchemy account, and [this faucet](https://goerli-faucet.mudit.blog/) requires a Twitter or Facebook account. 
 
-We'll paste the public address (**Not Mnemonic!**) from our wallet generation step:
+We'll paste the public address (**Not Mnemonic!**) from our wallet generation step into either or both faucets:
 
 ![Polygon faucet](https://user-images.githubusercontent.com/81271473/185481108-faa8872c-431e-4a32-bce0-846e421c262c.png)
 
