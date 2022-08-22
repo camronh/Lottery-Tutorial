@@ -1,7 +1,7 @@
 # Beginners Web3/Solidity/Blockchain Tutorial Part 2
 
 In [Part 1](https://github.com/camronh/Lottery-Tutorial/tree/Part1) we created the functionality for our lottery dApp. In Part 2, we'll
-be integrating the [API3 QRNG](https://api3.org/QRNG) into our contract and deploying it onto the [Polygon Mumbai testnet](https://docs.polygon.technology/docs/develop/network-details/network/). Alternatively, you may use the [Goerli public testnet](https://ethereum.org/en/developers/docs/networks/#goerli) in place of Mumbai by following the same steps.
+be integrating the [API3 QRNG](https://api3.org/QRNG) into our contract and deploying it onto the [Ethereum Goerli public testnet](https://ethereum.org/en/developers/docs/networks/#goerli). Alternatively, you may use another supported [chain](https://docs.api3.org/qrng/reference/chains.html) in place of Goerli by following the same steps and substituting accordingly.
 
 We'll be using the [Airnode Request-Response Protocol (RRP)](https://docs.api3.org/airnode/v0.7/concepts/) to get the random numbers onto the blockchain for the lottery. API3 QRNG is an Airnode [first-party oracle](https://docs.api3.org/api3/introduction/first-party-oracles.html) serving these random numbers from the Australian National University for blockchain and Web3 use-cases. Check our [API3 docs](https://docs.api3.org/api3/) to learn more about API3 and get an [overview of Airnode](https://docs.api3.org/airnode/v0.7/).  
 
@@ -9,7 +9,7 @@ We'll be using the [Airnode Request-Response Protocol (RRP)](https://docs.api3.o
 
 ### Forking
 
-As mentioned in Part 1, [Hardhat](https://hardhat.org/) is an [Ethereum development environment](https://ethereum.org/en/developers/docs/development-networks/) that allows us to deploy smart contracts to public Ethereum networks, and in this case, spin up a locally running Ethereum blockchain instance for testing our deployed contract. We can do this by configuring Hardhat to ["fork"](https://hardhat.org/hardhat-network/docs/guides/forking-other-networks) the [Polygon Mumbai testnet](https://docs.polygon.technology/docs/develop/network-details/network/), which will simulate the [state](https://ethereum.org/en/developers/docs/evm/#state) of the public network locally by fetching the data and exposing it transparently. We'll also need to connect to an [Ethereum archive node](https://www.alchemy.com/overviews/archive-nodes) to use this feature. We'll be using [Alchemy](https://www.alchemy.com/) below as our blockchain RPC node provider.
+As mentioned in Part 1, [Hardhat](https://hardhat.org/) is an [Ethereum development environment](https://ethereum.org/en/developers/docs/development-networks/) that allows us to deploy smart contracts to public Ethereum networks, and in this case, spin up a locally running Ethereum blockchain instance for testing our deployed contract. We can do this by configuring Hardhat to ["fork"](https://hardhat.org/hardhat-network/docs/guides/forking-other-networks) the [Ethereum Goerli testnet](https://ethereum.org/en/developers/docs/networks/#goerli), which will simulate the [state](https://ethereum.org/en/developers/docs/evm/#state) of the public network locally by fetching the data and exposing it transparently. We'll also need to connect to an [Ethereum archive node](https://www.alchemy.com/overviews/archive-nodes) to use this feature. We'll be using [Alchemy](https://www.alchemy.com/) below as our blockchain RPC node provider.
 
 
 #### 1. DotEnv
@@ -49,7 +49,7 @@ module.exports = {
   solidity: "0.8.9",
   networks: {
     hardhat: { // Hardhat local network
-      chainId: 137, // Force the ChainID to be 137 (Mumbai) in testing; Use 5 for Goerli
+      chainId: 5, // Force the ChainID to be 5 (Goerli) in testing
       forking: { // Configure the forking behavior
         url: process.env.RPC_URL, // Using the RPC_URL from the .env file
       },
@@ -504,7 +504,7 @@ npx hardhat --network localhost run scripts/close.js
 
 #### 3. Set up Mumbai
 
-In this next step, we will be pointing Hardhat towards the Mumbai testnet, which will provide a shared staging environment that mimics mainnet without using real money. This means we'll need a wallet with some Mumbai Matic Token funds on it. Even if you have a wallet, it is highly recommended that you create a new wallet for testing purposes.
+In this next step, we will be pointing Hardhat towards the Goerli testnet, which will provide a shared staging environment that mimics mainnet without using real money. This means we'll need a wallet with some Goerli ETH funds on it. Even if you have a wallet, it is highly recommended that you create a new wallet for testing purposes.
 
 > Never use a real wallet with real funds on it for development!
 
@@ -536,34 +536,30 @@ module.exports = {
   solidity: "0.8.9",
   networks: {
     hardhat: { // Hardhat local network
-      chainId: 137, // Force the ChainID to be 137 (Mumbai); use 5 for Goerli
+      chainId: 5, // Force the ChainID to be 5 (Goerli)
       forking: {
         url: process.env.RPC_URL,
       }
     },
-    mumbai: {
-      url: process.env.RPC_URL, // Reuse our Mumbai RPC URL
+    goerli: {
+      url: process.env.RPC_URL, // Reuse our Goerli RPC URL
       accounts: { mnemonic: process.env.MNEMONIC } // Use our wallet mnemonic
     }
   }
 };`
 ```
 
-Now we can run all of our commands with the added `--network mumbai` flag without needing to change any code.
+Now we can run all of our commands with the added `--network goerli` flag without needing to change any code.
 
-#### 4. Get Mumbai Matic
+#### 4. Get Goerli ETH
 
-If you attempted to run any commands against Mumbai, chances are that they failed. Thats because we are using our newly generated wallet that doesn't even have the funds to pay for the transaction. We can get some free Mumbai Matic for testing by using the Polygon [Mumbai faucet](https://faucet.polygon.technology/) or the [Alchemy Mumbai Faucet](https://mumbaifaucet.com/).
-
-If following these steps with Goerli, you'll need to use a Goerli faucet.[This faucet](https://goerlifaucet.com/) requires an Alchemy account, and [this faucet](https://goerli-faucet.mudit.blog/) requires a Twitter or Facebook account. 
+If you attempted to run any commands against Goerli, chances are that they failed. Thats because we are using our newly generated wallet that doesn't even have the funds to pay for the transaction. We can get some free Goerli ETH for testing by using a Goerli faucet. [This faucet](https://goerlifaucet.com/) requires an Alchemy account, and [this faucet](https://goerli-faucet.mudit.blog/) requires a Twitter or Facebook account. 
 
 We'll paste the public address (**Not Mnemonic!**) from our wallet generation step into either or both faucets:
 
-![Polygon faucet](https://user-images.githubusercontent.com/81271473/185481108-faa8872c-431e-4a32-bce0-846e421c262c.png)
+![Alchemy faucet](https://user-images.githubusercontent.com/81271473/186013366-b536d15b-12ef-491c-a22f-9a797d604928.png)
 
-![Alchemy faucet](https://user-images.githubusercontent.com/81271473/185982294-2c340227-6602-444a-85b1-eaa563489af7.png)
-
-If using a MetaMask wallet, you may [connect to the Polygon Mumbai testnet](https://blog.polysynth.com/how-to-connect-polygon-testnet-to-metamask-wallet-472bca410d64) to view your Matic.
+If using a MetaMask wallet, you may [connect to the Goerli testnet](https://blog.cryptostars.is/goerli-g%C3%B6rli-testnet-network-to-metamask-and-receiving-test-ethereum-in-less-than-2-min-de13e6fe5677) to view your ETH.
 
 We can test our accounts in Hardhat by using tasks. Inside of the `hardhat.config.js` file, underneath our imports and above our exports, add the following:
 
@@ -576,7 +572,7 @@ task(
 
     const balance = await account.getBalance(); // Get balance for account
     console.log(
-      `${account.address}: (${hre.ethers.utils.formatEther(balance)} MATIC)` // Print the balance in MATIC (or ETHER if using Goerli)
+      `${account.address}: (${hre.ethers.utils.formatEther(balance)} ETH)` // Print the balance in Ether
     );
   }
 );
@@ -585,13 +581,13 @@ task(
 Now we can run the `balance` task and see the balance of our account:
 
 ```bash
-npx hardhat --network mumbai balance
+npx hardhat --network goerli balance
 ```
 
-If you followed the faucet steps correctly (and the faucet is currently operating), you should see the balance of our account is greater than 0 MATIC (or ETH). In this case, 
+If you followed the faucet steps correctly (and the faucet is currently operating), you should see the balance of our account is greater than 0 ETH. In this case, 
 
 ```bash
-0x0EDA9399c969...: (1 MATIC)
+0x0EDA9399c969...: (0.5 ETH)
 ```
 
 #### 5. Use Lottery contract on public chain
@@ -599,21 +595,21 @@ If you followed the faucet steps correctly (and the faucet is currently operatin
 We have everything configured to deploy onto a public chain. Lets start with the deployment command:
 
 ```bash
-npx hardhat --network mumbai deploy
+npx hardhat --network goerli deploy
 ```
 
-> Keep in mind things will move much slower on the Mumbai network.
+> Keep in mind things will move much slower on the Goerli network.
 
 Next we will enter our lottery:
 
 ```bash
-npx hardhat --network mumbai run ./scripts/enter.js 
+npx hardhat --network goerli run ./scripts/enter.js 
 ```
 
 And finally, close our lottery:
 
 ```bash
-npx hardhat --network mumbai run ./scripts/close.js
+npx hardhat --network goerli run ./scripts/close.js
 ```
 
 ![image](https://user-images.githubusercontent.com/26840412/182447459-4dbda7bc-b703-4453-9242-61b4913b1c3a.png)

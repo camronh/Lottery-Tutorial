@@ -21,13 +21,13 @@ module.exports = {
   solidity: "0.8.9",
   networks: {
     hardhat: { // Hardhat local network
-      chainId: 137, // Force the ChainID to be 137 (Polygon)
+      chainId: 5, // Force the ChainID to be 5 (Goerli)
       forking: {
         url: process.env.RPC_URL,
       }
     },
     mumbai: {
-      url: process.env.RPC_URL, // Reuse our ropsten RPC URL
+      url: process.env.RPC_URL, // Reuse our Goerli RPC URL
       accounts: { mnemonic: process.env.MNEMONIC } // Use our wallet mnemonic
     }
   }
