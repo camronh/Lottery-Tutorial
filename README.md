@@ -70,14 +70,21 @@ contract Lottery {
 }
 ```
 
-#### 4. Underneath the global variables, add the mappings for tickets and winning numbers
+
+#### 4. Underneath the global variables, add our [error handling](https://docs.soliditylang.org/en/v0.8.16/contracts.html#errors-and-the-revert-statement)
+
+```Solidity
+error EndTimeReached(uint256 lotteryEndTime);
+```
+
+#### 5. Underneath the global variables, add the mappings for tickets and winning numbers
 
 ```solidity
 mapping(uint256 => mapping(uint256 => address[])) public tickets; // mapping of week => entry choice => list of addresses
 mapping(uint256 => uint256) public winningNumber; // mapping to store each weeks winning number
 ```
 
-#### 5. Underneath the mappings, add the constructor function
+#### 6. Underneath the mappings, add the constructor function
 
 When deploying the contract, we'll need to pass in a datetime that the lottery will end. After the lottery ends, the next week will begin and will end
 7 days after the original `endTime`.
@@ -89,12 +96,12 @@ constructor(uint256 _endTime) {
 }
 ```
 
-#### 6. Underneath the constructor function, add a function to buy a ticket
+#### 7. Underneath the constructor function, add a function to buy a ticket
 
 ```solidity
-function enter(uint256 _number) public payable {
-    require(_number <= MAX_NUMBER, "Number must be 1-MAX_NUMBER"); // guess has to be between 1 and 10,000
-    require(block.timestamp < endTime, "Lottery has ended"); // lottery has to be open
+function enter(uint256 _number) external payable {
+    require(_number <= MAX_NUMBER, "Number must be 1-MAX_NUMBER"); // guess has to be between 1 and MAX_NUMBER
+    if (block.timestamp >= endTime) revert EndTimeReached(endTime); // lottery has to be open
     require(msg.value == ticketPrice, "Ticket price is 0.0001 ether"); // user needs to send 0.0001 ether with the transaction
     tickets[week][_number].push(msg.sender); // add user's address to list of entries for their number under the current week
     pot += ticketPrice; // account for the ticket sale in the pot
@@ -104,13 +111,13 @@ function enter(uint256 _number) public payable {
 Users can call this function with a number 1-10000 and a value of 0.001 ether to buy a lottery ticket. The user's address is added to the
 addresses array in the `tickets` mapping.
 
-#### 7. Create a function to mock the QRNG picking the winners
+#### 8. Create a function to mock the QRNG picking the winners
 
 Before we decentralize our lottery, lets mock the random number generation so that we can test the contracts functionality. We will be
 decentralizing this function in Part 2 of this tutorial by using the API3 QRNG.
 
 ```solidity
-function closeWeek(uint256 _randomNumber) public {
+function closeWeek(uint256 _randomNumber) external {
     require(block.timestamp > endTime, "Lottery has not ended"); // not available until end time has passed
     winningNumber[week] = _randomNumber;
     address[] memory winners = tickets[week][_randomNumber]; // get list of addresses that chose the random number this week
@@ -126,7 +133,7 @@ function closeWeek(uint256 _randomNumber) public {
 }
 ```
 
-#### 8. Create read only function
+#### 9. Create read only function
 
 This function will return the list of addresses that chose the given number for the given week.
 
@@ -137,7 +144,7 @@ function getEntriesForNumber(uint256 _number, uint256 _week) public view returns
 ```
 
 
-#### 9. Create `receive` function
+#### 10. Create `receive` function
 
 The [receive function](https://docs.soliditylang.org/en/v0.8.14/contracts.html#receive-ether-function) will be called if funds are sent to the contract. In this case, we need to add these funds to the pot.
 
