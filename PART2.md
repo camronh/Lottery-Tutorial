@@ -1,31 +1,34 @@
 # Beginners Web3/Solidity/Blockchain Tutorial Part 2
 
-In [Part 1](https://github.com/camronh/Lottery-Tutorial/tree/Part1) we created the functionality for our lottery dApp. In Part 2, we will
-be integrating the API3 QRNG into our contract. and deploying it onto the Rinkeby public testnet.
+In [Part 1](https://github.com/camronh/Lottery-Tutorial/tree/Part1) we created the functionality for our lottery dApp. In Part 2, we'll
+be integrating the [API3 QRNG](https://api3.org/QRNG) into our contract and deploying it onto the [Ethereum Goerli public testnet](https://ethereum.org/en/developers/docs/networks/#goerli). Alternatively, you may use another supported [chain](https://docs.api3.org/qrng/reference/chains.html) in place of Goerli by following the same steps and substituting accordingly.
 
-## Instructions
+We'll be using the [Airnode Request-Response Protocol (RRP)](https://docs.api3.org/airnode/v0.7/concepts/) to get the random numbers onto the blockchain for the lottery. API3 QRNG is an Airnode [first-party oracle](https://docs.api3.org/api3/introduction/first-party-oracles.html) serving these random numbers from the Australian National University for blockchain and Web3 use-cases. Check our [API3 docs](https://docs.api3.org/api3/) to learn more about API3 and get an [overview of Airnode](https://docs.api3.org/airnode/v0.7/).  
+
+## Instruction
 
 ### Forking
 
-[[Explain Forking Here]]
+As mentioned in Part 1, [Hardhat](https://hardhat.org/) is an [Ethereum development environment](https://ethereum.org/en/developers/docs/development-networks/) that allows us to deploy smart contracts to public Ethereum networks, and in this case, spin up a locally running Ethereum blockchain instance for testing our deployed contract. We can do this by configuring Hardhat to ["fork"](https://hardhat.org/hardhat-network/docs/guides/forking-other-networks) the [Ethereum Goerli testnet](https://ethereum.org/en/developers/docs/networks/#goerli), which will simulate the [state](https://ethereum.org/en/developers/docs/evm/#state) of the public network locally by fetching the data and exposing it transparently. We'll also need to connect to an [Ethereum archive node](https://www.alchemy.com/overviews/archive-nodes) to use this feature. We'll be using [Alchemy](https://www.alchemy.com/) below as our blockchain RPC node provider.
+
 
 #### 1. DotEnv
 
-We are going to be using sensitive credentials in the next steps. We will be using the [DotEnv](https://www.npmjs.com/package/dotenv) package to store those credentials.
+We're going to use sensitive credentials in the next steps. We'll be using the [DotEnv](https://www.npmjs.com/package/dotenv) package to store those credentials as environment variables separately from our application code.
 
 ```bash
 npm install dotenv
 ```
 
-Next, make a `.env` file in the root of your project.
+Next, make a `.env` file at the root of your project.
 
-Make an [Infura](https://infura.io/) account, get the Goerli RPC and add the following to your `.env` file:
-
+Make an [Alchemy](https://www.alchemy.com/) account. Click the "CREATE APP" button and select the Goerli testnet from the dropdown menu, as the rest of the available testnets are [deprecated or will soon be deprecated](https://blog.ethereum.org/2022/06/21/testnet-deprecation/). Insert your newly-generated Goerli RPC endpoint URL to your `.env` file:
+.
 ```text
 RPC_URL="{PUT RPC URL HERE}"
 ```
 
-Now add the following to the top of you `hardhat.config.js` file to use the Infura RPC:
+Then add the following to the top of your `hardhat.config.js` file to load your `RPC_URL` variable.
 
 ```js
 require("dotenv").config();
@@ -33,7 +36,7 @@ require("dotenv").config();
 
 #### 2. Configure Hardhat to use forking
 
-By adding the following to our `module.exports` in the `hardhat.config.js` file, we tell hardhat to make a copy of the Goerli network for use in local testing:
+By adding the following to our `module.exports` in the `hardhat.config.js` file, we tell Hardhat to make a copy of the [Goerli network](https://ethereum.org/en/developers/docs/networks/#goerli) for use in local testing:
 
 ```js
 module.exports = {
@@ -49,7 +52,9 @@ module.exports = {
 };
 ```
 
-### Make contract an Airnode Requester
+### Turn contract into an [Airnode Requester](https://docs.api3.org/airnode/v0.7/concepts/requester.html)
+
+As a requester, our `Lottery.sol` contract will make requests to an Airnode, specifically the API3 QRNG, using the [Request-Response Protocol (RRP)](https://docs.api3.org/airnode/v0.7/concepts/). It may be helpful to take a little time familiarize yourself if you haven't already. 
 
 #### 1. Install dependencies
 
@@ -57,9 +62,9 @@ module.exports = {
 npm install @api3/airnode-protocol
 ```
 
-#### 2. Import the Airnode Protocol into contract
+#### 2. Import the [Airnode Protocol](https://docs.api3.org/airnode/v0.7/concepts/) into contract
 
-At the top of `Lottery.sol`, underneath the solidity version, import the Airnode RRP Contract:
+At the top of `Lottery.sol`, below the solidity version, import the [Airnode RRP Contract](https://docs.api3.org/airnode/v0.7/grp-developers/call-an-airnode.html#step-1-inherit-rrprequesterv0-sol) from the [npm registry](https://www.npmjs.com/):
 
 ```solidity
 // SPDX-License-Identifier: UNLICENSED
@@ -70,9 +75,9 @@ import "@api3/airnode-protocol/contracts/rrp/requesters/RrpRequesterV0.sol";
 contract Lottery is RrpRequesterV0{
 ```
 
-#### 3. Rewrite our constructor
+#### 3. Modify our constructor
 
-We need to set the address of the RRP contract we are using. We can do that in the constructor by making it an argument for deployment:
+We need to set the public [address](https://docs.api3.org/airnode/v0.7/reference/airnode-addresses.html) of the Airnode RRP contract on the blockchain that we're using. We can do this in the constructor by making it an argument for deployment:
 
 ```solidity
 constructor(uint256 _endTime, address _airnodeRrpAddress)
@@ -85,35 +90,35 @@ constructor(uint256 _endTime, address _airnodeRrpAddress)
 
 #### 4. Test
 
-At the top of the `tests/Lottery.js` file, import the Airnode protocol package:
+At the top of the `test/Lottery.js` file, import the [Airnode protocol package](https://www.npmjs.com/package/@api3/airnode-protocol):
 
 ```js
 const airnodeProtocol = require("@api3/airnode-protocol");
 ```
 
-We need to pass the address of the RRP contract into the constructor. We can do that by adding the following to our "Deploys" test:
+We need to pass the [address](https://docs.api3.org/airnode/v0.7/reference/airnode-addresses.html) of the RRP contract into the constructor. We can do that by adding the following to our "Deploys" test:
 
 ```js
 it("Deploys", async function () {
-  const Lottery = await ethers.getContractFactory("Lottery");
-  accounts = await ethers.getSigners();
+  const Lottery = await ethers.getContractFactory("Lottery"); // Create a factory object to deploy instances of our lottery smart contract
+  accounts = await ethers.getSigners(); // Get list of Ethereum accounts (signers) in the node we're connected to (Hardhat Network)
   nextWeek = Math.floor(Date.now() / 1000) + 604800;
 
   let { chainId } = await ethers.provider.getNetwork(); // Get the chainId we are using in hardhat
   const rrpAddress = airnodeProtocol.AirnodeRrpAddresses[chainId]; // Get the AirnodeRrp address for the chainId
 
-  lotteryContract = await Lottery.deploy(nextWeek, rrpAddress); // Pass address in to the constructor
+  lotteryContract = await Lottery.deploy(nextWeek, rrpAddress); // Deploy contract, pass address into the constructor
   expect(await lotteryContract.deployed()).to.be.ok;
 });
 ```
 
-Run `npx hardhat test` to test your code.
+Run `npx hardhat test` to check that your code passes all 3 tests before moving on.
 
-### Setup Airnode
+### Set up Airnode
 
-#### 1. Params
+#### 1. Parameters
 
-We need to store the [Airnode Params](https://docs.api3.org/qrng/reference/providers.html) in the contract. In the `Lottery.sol` contract, add the following to the global variables:
+[Airnode Parameters](https://docs.api3.org/airnode/v0.7/grp-developers/call-an-airnode.html#request-parameters) need to be stored in our contract. In `Lottery.sol`, add the following to the global variables:
 
 ```solidity
 address public constant airnodeAddress =  0x9d3C147cA16DB954873A498e0af5852AB39139f2;
@@ -121,11 +126,15 @@ bytes32 public constant endpointId = 0xfb6d017bb87991b7495f563db3c8cf59ff87b0978
 address public sponsorWallet; // We will store the sponsor wallet here later
 ```
 
-#### 2. Set the sponsor wallet
+The `airnodeAddress` and `endpointID` of a particular Airnode can be found in the documentation of the API provider, which in this case is [API3 QRNG](https://docs.api3.org/qrng/reference/providers.html#anu-quantum-random-numbers).
 
-We need to make the contract Ownable. That will allow us to restrict the ability to set the sponsor wallet to the contract owner.
+#### 2. Set the [sponsor wallet](https://docs.api3.org/airnode/v0.7/concepts/sponsor.html#sponsorwallet)
 
-First, import the `Ownable` contract at the top of the `Lottery.sol` contract:
+To pay for the fulfillment of Airnode requests, normally we'll need to [sponsor the requester](https://docs.api3.org/airnode/v0.7/grp-developers/requesters-sponsors.html), our `Lottery.sol` contract. In this case, if we use the contract address itself as the `sponsorAddress`, it automatically sponsors itself. 
+
+ We'll need to make our contract "Ownable". That will allow us to restrict access for setting the [`sponsorWallet`](https://docs.api3.org/airnode/v0.7/concepts/sponsor.html#sponsorwallet) to the contract owner (the wallet/account that deployed the contract). Note that `sponsorWallet` is different than a `sponsorAddress`.
+
+First, import the [`Ownable` contract](https://docs.openzeppelin.com/contracts/4.x/api/access#Ownable) at the top of `Lottery.sol`:
 
 ```solidity
 import "@api3/airnode-protocol/contracts/rrp/requesters/RrpRequesterV0.sol";
@@ -134,7 +143,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 contract Lottery is RrpRequesterV0, Ownable {
 ```
 
-Now we can make our `setSponsorWallet` function and attach the `onlyOwner` modifier to restrict access:
+Then we can make our `setSponsorWallet` function and attach the `onlyOwner` modifier to restrict access:
 
 ```solidity
 function setSponsorWallet(address _sponsorWallet) public onlyOwner {
@@ -144,7 +153,8 @@ function setSponsorWallet(address _sponsorWallet) public onlyOwner {
 
 #### 3. Test
 
-We'll be deriving our sponsor wallet using the `@api3/airnode-admin` package. We can install it with the following command:
+We'll be deriving our `sponsorWallet` used for funding Airnode transactions using functions from the [`@api3/airnode-admin` package/CLI tool](https://docs.api3.org/airnode/v0.7/reference/packages/admin-cli.html). 
+
 
 ```bash
 npm install @api3/airnode-admin
@@ -156,9 +166,7 @@ Then we can import it into our `tests/Lottery.js` file:
 const airnodeAdmin = require("@api3/airnode-admin");
 ```
 
-
-
-We will hardcode the [ANU QRNG Xpub and Airnode Address](https://docs.api3.org/qrng/reference/providers.html) to derive our sponsor wallet address.
+We'll hardcode the [ANU QRNG's Xpub and Airnode Address](https://docs.api3.org/qrng/reference/providers.html) to [derive our `sponsorWalletAddress`](https://docs.api3.org/airnode/v0.7/grp-developers/requesters-sponsors.html#how-to-derive-a-sponsor-wallet). 
 Add the following test inside the "Deployment" tests:
 
 ```js
@@ -166,10 +174,10 @@ it("Sets sponsor wallet", async function () {
   const sponsorWalletAddress = await airnodeAdmin.deriveSponsorWalletAddress(
     "xpub6DXSDTZBd4aPVXnv6Q3SmnGUweFv6j24SK77W4qrSFuhGgi666awUiXakjXruUSCDQhhctVG7AQt67gMdaRAsDnDXv23bBRKsMWvRzo6kbf", // ANU Xpub
     "0x9d3C147cA16DB954873A498e0af5852AB39139f2", // ANU Airnode Address
-    lotteryContract.address
+    lotteryContract.address // used as sponsorAddress 
   );
   await expect(
-    lotteryContract.connect(accounts[1]).setSponsorWallet(sponsorWalletAddress)
+    lotteryContract.connect(accounts[1]).setSponsorWallet(sponsorWalletAddress) // we deployed the lottery contract with the first account
   ).to.be.reverted; // onlyOwner should be able to call this function
 
   await lotteryContract.setSponsorWallet(sponsorWalletAddress);
@@ -202,11 +210,11 @@ function getWinningNumber() public payable {
 }
 ```
 
-We will leave line 2 commented out for ease of testing. In lines 4-12 we are making a request to the API3 QRNG for a single random number. In line 15 we transfer the gas funds to the sponsor wallet so Airnode has the gas to return the random number.
+We'll leave line 2 commented out for ease of testing. In lines 4-12 we're making a [request](https://docs.api3.org/airnode/v0.7/concepts/request.html#request-parameters) to the API3 QRNG for a single random number. In line 15 we transfer the ether to the sponsor wallet that will pay the gas fees for Airnode to return the random number on-chain.
 
-#### 1. Map pending request ids
+#### 1. Map pending [request IDs](https://docs.api3.org/airnode/v0.7/concepts/request.html#requestid)
 
-In line 13 we are storing the requestId in a mapping. This will allow us to check if the request is pending or not. Let's add the following under our mappings:
+In line 13 we are storing the [`requestId`](https://docs.api3.org/airnode/v0.7/concepts/request.html#requestid) in a mapping. This will allow us to check whether or not the request is pending. Let's add the following under our mappings:
 
 ```solidity
 mapping (bytes32 => bool) public pendingRequestIds;
@@ -214,14 +222,14 @@ mapping (bytes32 => bool) public pendingRequestIds;
 
 #### 2. Create event
 
-In line 14 we emit an event that the request has been made and a request ID has been generated. We need to describe our event at the top of our contract:
+In line 14 we emit an event that the request has been made and a request ID has been generated. Solidity events are logged as transactions to the Ethereum Virtual Machine, and inform the application that a change has been made on the blockchain. We need to describe our event at the top of our contract:
 
 ```solidity
 contract Lottery is RrpRequesterV0, Ownable {
     event RequestedRandomNumber(bytes32 indexed requestId);
 ```
 
-### Rewrite fulfill function
+### Rewrite [fulfill](https://docs.api3.org/airnode/v0.7/concepts/request.html#fulfill) function
 
 
 #### 1. Rewrite `closeWeek`
@@ -256,10 +264,10 @@ function closeWeek(bytes32 requestId, bytes calldata data) // Airnode returns th
 }
 ```
 
-In the first line set the function to take in the request ID and the payload. In line 3 we add a modifier to restrict this function to only be access by Airnode RRP.
+In the first line set the function to take in the request ID and the payload. In line 3 we add a modifier to restrict this function to only be accessible by Airnode RRP.
 On line 5 and 6 we handle the request ID. If the request ID is not in the `pendingRequestIds` mapping, we throw an error, otherwise we delete the request ID from the `pendingRequestIds` mapping.
 
-In line 8 we decode and typecast the random number from the payload. We don't need to import anything to use `abi.decode()`. Then we use the modulo operator (`%`) to ensure that the random number is between 0 and the max number.
+In line 8 we decode and typecast the random number from the payload. We don't need to import anything to use [`abi.decode()`](https://docs.api3.org/airnode/v0.7/reference/specifications/airnode-abi-specifications.html). Then we use the modulo operator (`%`) to ensure that the random number is between 0 and the max number.
 
 Line 11 will prevent duplicate requests from being fulfilled. If more than 1 request is made, the first one to be fulfilled will increment the `endTime` and the rest will revert. We will leave it commented out for now to make testing easy.
 
@@ -273,7 +281,7 @@ event ReceivedRandomNumber(bytes32 indexed requestId, uint256 randomNumber);
 
 ### Hardhat-Deploy
 
-We will be using Hardhat-Deploy to deploy and manage our contracts on different chains. First lets install the `hardhat-deploy` package:
+We will be using Hardhat-Deploy to deploy and manage our contracts on different chains. First lets install the [`hardhat-deploy` package](https://www.npmjs.com/package/hardhat-deploy):
 
 #### 1. Install
 
@@ -294,13 +302,13 @@ Now we can create a folder named `deploy` in the root to house our deployment sc
 In our `deploy` folder, create a file named `1_deploy.js`. We'll be using hardhat and the Airnode Protocol package so lets import them at the top:
 
 ```js
-const hre = require("hardhat");
+const hre = require("hardhat"); // Instance of Hardhat Runtime Environment
 const airnodeProtocol = require("@api3/airnode-protocol");
 ```
 
-Hardhat deploy scripts should be done through a `module.exports` function **Need more info**. We will use the Airnode Protocol package to retrieve the RRP Contract address needed to deploy. We'll use `hre.getChainId()`, a function included in Hardhat-Deploy, to get the chain ID.
+Hardhat deploy scripts should be done through a `module.exports` function **Need more info**. We will use the Airnode Protocol package to retrieve the RRP Contract address needed as an argument to deploy our lottery contract. We'll use `hre.getChainId()`, a function included in Hardhat-Deploy, to get the chain ID, which we'd set to 5 in `hardhat.config.js`.
 
-Finally we will deploy the contract using `hre.deployments`. We pass in our arguments, a from address, and set logging to true.
+Finally, we'll deploy the contract using `hre.deployments`. We pass in our arguments, a "from" address, and set logging to true.
 
 ```js
 module.exports = async () => {
@@ -310,7 +318,7 @@ module.exports = async () => {
 
   const lotteryContract = await hre.deployments.deploy("Lottery", {
     args: [nextWeek, airnodeRrpAddress], // Constructor arguments
-    from: (await getUnnamedAccounts())[0], // From account
+    from: (await getUnnamedAccounts())[0], // From account that owns contract
     log: true,
   });
   console.log(`Deployed Lottery Contract at ${lotteryContract.address}`);
@@ -331,7 +339,7 @@ Let's try it out! We should test on a local blockchain first to make things easy
 npx hardhat node
 ```
 
-Then, in a separate terminal, we can deploy to our local chain:
+Then, in a separate terminal, we can deploy to our chain (localhost), specified by the `--network` parameter:
 
 ```bash
 npx hardhat --network localhost deploy
@@ -345,10 +353,10 @@ If everything worked well, we should see a message in the console that says our 
 
 We can couple another script with our deployment script so that the `setSponsorWallet` function is called after each deployment. We will start by creating a file in the `deploy` folder called `2_set_sponsorWallet.js`.
 
-We will be using hardhat again, but we will be using the Airnode Admin package in this script. We'll import them at the top:
+We will be using hardhat again, but we'll be using the Airnode Admin package in this script. We'll import them at the top:
 
 ```js
-const hre = require("hardhat");
+const hre = require("hardhat"); // Instance of Hardhat Runtime Environment
 const airnodeAdmin = require("@api3/airnode-admin");
 ```
 
@@ -393,14 +401,14 @@ npx hardhat --network localhost deploy
 
 ### Live testing!
 
-In this step, we will be testing our contract on a live testnet blockchain. This means that our random number requests will be answered by the ANU QRNG Airnode.
+In this step, we will be testing our contract by [deploying it to a live testnet blockchain](https://hardhat.org/tutorial/deploying-to-a-live-network), allowing others to access an instance that's not running locally. This will allow our random number requests will be answered by the [ANU QRNG Airnode](https://docs.api3.org/qrng/#australian-national-university-anu-quantum-random-numbers-api).
 
 #### 1. Enter script
 
-We need to write a script that will connect to our deployed contract and enter the lottery. We will start by creating a file in the `scripts` folder named `enter.js`. If you look inside of the boilerplate `deploy.js` file, you'll see Hardhat recommends a format for scripts:
+We need to write a script that will connect to our deployed contract and enter the lottery. We'll start by creating a file in the `scripts` folder named `enter.js`. If you look inside of the boilerplate `deploy.js` file, you'll see Hardhat recommends a format for scripts:
 
 ```js
-const hre = require("hardhat");
+const hre = require("hardhat"); // Instance of Hardhat Runtime Environment
 
 async function main() {
   // Your script logic here...
@@ -412,7 +420,7 @@ main().catch((error) => {
 });
 ```
 
-Inside the `main` funtion, we can put our enter script:
+Inside the `main` funtion, we can put our "enter" script:
 
 ```js
 const guess = 55; // The number we chose for our lottery entry
@@ -498,11 +506,11 @@ npx hardhat --network localhost run scripts/close.js
 
 #### 3. Set up Goerli
 
-In this next step, we will be pointing hardhat towards the Goerli testnet. That means we will need a wallet with some Goerli Eth funds on it. Even if you have a wallet, it is recommended you create a new wallet for testing purposes.
+In this next step, we will be pointing Hardhat towards the Goerli testnet, which will provide a shared staging environment that mimics mainnet without using real money. This means we'll need a wallet with some Goerli ETH funds on it. Even if you have a wallet, it is highly recommended that you create a new wallet for testing purposes.
 
 > Never use a real wallet with real funds on it for development!
 
-First, lets generate the wallet. We will use the Airnode Admin CLI to generate a mnemonic, but feel free to create a wallet in any way you see fit.
+First, lets generate the wallet. We will use the [Airnode Admin CLI](https://docs.api3.org/airnode/v0.2/reference/packages/admin-cli-commands.html) to generate a mnemonic, but feel free to create a wallet in any way you see fit.
 
 ```sh
 npx @api3/airnode-admin generate-mnemonic
@@ -517,20 +525,20 @@ The Airnode address for this mnemonic is: 0x1a942424D880... # The public address
 The Airnode xpub for this mnemonic is: xpub6BmYykrmWHAhSFk... # The Xpub of our wallet
 ```
 
-We will be using the mnemonic and Airnode address (Public Address). Lets add our mnemonic to the `.env` file so that we can use it safely:
+We'll be using the mnemonic and Airnode address (Public Address). Lets add our mnemonic to the `.env` file so that we can use it safely:
 
 ```bash
 MNEMONIC="genius session popular ..."
 ```
 
-Next, we will configure Hardhat to use the Goerli network and our mnemonic. Inside the `networks` object in our `hardhat.config.js` file, add the following:
+Next, we'll configure Hardhat to use the Goerli network and our mnemonic. Inside the `networks` object in our `hardhat.config.js` file, modify the `module.exports` to add a network entry:
 
 ```js
 module.exports = {
   solidity: "0.8.9",
   networks: {
-    hardhat: {
-      chainId: 3,
+    hardhat: { // Hardhat local network
+      chainId: 5, // Force the ChainID to be 5 (Goerli)
       forking: {
         url: process.env.RPC_URL,
       }
@@ -545,13 +553,15 @@ module.exports = {
 
 Now we can run all of our commands with the added `--network goerli` flag without needing to change any code.
 
-#### 4. Get Goerli Eth
+#### 4. Get Goerli ETH
 
-If you attempted to run any commands against Goerli, chances are that they failed. Thats because we are using our newly generated wallet that doesn't even have the funds to pay for the transaction. We can get some free Goerli Eth for testing by using a Goerli Faucet.
+If you attempted to run any commands against Goerli, chances are that they failed. Thats because we are using our newly generated wallet that doesn't even have the funds to pay for the transaction. We can get some free Goerli ETH for testing by using a Goerli faucet. [This faucet](https://goerlifaucet.com/) requires an Alchemy account, and [this faucet](https://goerli-faucet.mudit.blog/) requires a Twitter or Facebook account. 
 
-I'll be using [This Faucet](https://faucet.egorfine.com/) but feel free to use any faucet you like. We will paste the public address (**Not Mnemonic!**) from our wallet generation step:
+We'll paste the public address (**Not Mnemonic!**) from our wallet generation step into either or both faucets:
 
-[Pic of Faucet]
+![Alchemy faucet](https://user-images.githubusercontent.com/81271473/186013366-b536d15b-12ef-491c-a22f-9a797d604928.png)
+
+If using a MetaMask wallet, you may [connect to the Goerli testnet](https://blog.cryptostars.is/goerli-g%C3%B6rli-testnet-network-to-metamask-and-receiving-test-ethereum-in-less-than-2-min-de13e6fe5677) to view your ETH.
 
 We can test our accounts in Hardhat by using tasks. Inside of the `hardhat.config.js` file, underneath our imports and above our exports, add the following:
 
@@ -562,7 +572,7 @@ task(
   async (taskArgs, hre) => {
     const [account] = await hre.ethers.getSigners(); // Get an array of all accounts
 
-    const balance = await account.getBalance(); // Get Eth balance for account in wei
+    const balance = await account.getBalance(); // Get balance for account
     console.log(
       `${account.address}: (${hre.ethers.utils.formatEther(balance)} ETH)` // Print the balance in Ether
     );
@@ -579,12 +589,12 @@ npx hardhat --network goerli balance
 If you followed the faucet steps correctly (and the faucet is currently operating), you should see the balance of our account is greater than 0 ETH. If not, you may need to wait a little bit longer or try a different faucet.
 
 ```bash
-0x0EDA9399c969...: (1 ETH)
+0x0EDA9399c969...: (0.5 ETH)
 ```
 
 #### 5. Use Lottery contract on public chain
 
-We have everything configured to deploy onto a public chain. Lets start with the deployment:
+We have everything configured to deploy onto a public chain. Lets start with the deployment command:
 
 ```bash
 npx hardhat --network goerli deploy
