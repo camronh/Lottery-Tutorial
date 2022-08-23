@@ -4,7 +4,7 @@ In this tutorial we will be walking through building and deploying a decentraliz
 
 > **By the end of this tutorial you should be able to:**
 
-Deploy a decentralized lottery smart contract to the [Rinkeby testnet](https://ethereum.org/en/developers/docs/networks/#rinkeby) that uses [Quantum Randomness](https://www.americanscientist.org/article/quantum-randomness).
+Deploy a decentralized lottery smart contract to the [Goerli testnet](https://ethereum.org/en/developers/docs/networks/#goerli) that uses [Quantum Randomness](https://www.americanscientist.org/article/quantum-randomness).
 
 > **Who is this tutorial for?**
 
