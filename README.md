@@ -136,6 +136,17 @@ function getEntriesForNumber(uint256 _number, uint256 _week) public view returns
 }
 ```
 
+
+#### 9. Create `receive` function
+
+The receive function will be called if funds are sent to the contract. In this case, we need to add these funds to the pot.
+
+```Solidity
+receive() external payable {
+    pot += msg.value; // add funds to the pot
+}
+```
+
 ### Testing the contract
 
 #### 1. In the test folder, delete the `Lock.js` file and create a file called `Lottery.js`.

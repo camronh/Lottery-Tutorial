@@ -57,4 +57,9 @@ contract Lottery {
     {
         return tickets[_week][_number];
     }
+
+    /// @notice Handles when funds are sent directly to the contract address
+    receive() external payable {
+        pot += msg.value; // add funds to the pot
+    }
 }

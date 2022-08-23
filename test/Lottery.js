@@ -3,7 +3,7 @@ const { ethers } = require("hardhat");
 
 describe("Lottery", function () {
   let lotteryContract, accounts, nextWeek;
-  
+
   describe("Deployment", function () {
     it("Deploys", async function () {
       const Lottery = await ethers.getContractFactory("Lottery");
@@ -18,6 +18,7 @@ describe("Lottery", function () {
       expect(endTime).to.be.closeTo(Math.floor(Date.now() / 1000) + 604800, 5);
     });
   });
+
 
   describe("Lottery is open", function () {
     it("Users enter between 1-3", async function () {
@@ -47,6 +48,9 @@ describe("Lottery", function () {
     it("Should fail to close lotteryContract if week is still open", async function () {
       await expect(lotteryContract.connect(accounts[0]).closeWeek(55)).to.be.reverted;
     });
+
+
+
   });
 
   describe("First week ends with no winners", function () {
@@ -110,5 +114,14 @@ describe("Lottery", function () {
       expect(await lotteryContract.week()).to.equal(3);
       expect(await lotteryContract.pot()).to.equal(0);
     });
+
+    it("Add funds sent to contract to pot", async function () {
+      await accounts[0].sendTransaction({
+        to: lotteryContract.address,
+        value: ethers.utils.parseEther("1"),
+      })
+      expect(await lotteryContract.pot()).to.equal(ethers.utils.parseEther("1"));
+    });
   });
+
 });
