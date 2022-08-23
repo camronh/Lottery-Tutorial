@@ -45,7 +45,7 @@ contract Lottery {
             uint256 earnings = pot / winners.length; // divide pot evenly among winners
             pot = 0; // reset pot
             for (uint256 i = 0; i < winners.length; i++) {
-                payable(winners[i]).transfer(earnings); // send earnings to each winner
+                payable(winners[i]).call{value: earnings}(""); // send earnings to each winner
             }
         }
     }
