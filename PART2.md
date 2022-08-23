@@ -502,7 +502,7 @@ If we test this against our local chain, we should receive a request ID but no r
 npx hardhat --network localhost run scripts/close.js
 ```
 
-#### 3. Set up Mumbai
+#### 3. Set up Goerli
 
 In this next step, we will be pointing Hardhat towards the Goerli testnet, which will provide a shared staging environment that mimics mainnet without using real money. This means we'll need a wallet with some Goerli ETH funds on it. Even if you have a wallet, it is highly recommended that you create a new wallet for testing purposes.
 
@@ -529,7 +529,7 @@ We'll be using the mnemonic and Airnode address (Public Address). Lets add our m
 MNEMONIC="{PASTE 12-WORD MNEMONIC PHRASE HERE}"
 ```
 
-Next, we'll configure Hardhat to use the Mumbai network and our mnemonic. Inside the `networks` object in our `hardhat.config.js` file, modify the `module.exports` to add a network entry:
+Next, we'll configure Hardhat to use the Goerli network and our mnemonic. Inside the `networks` object in our `hardhat.config.js` file, modify the `module.exports` to add a network entry:
 
 ```js
 module.exports = {
