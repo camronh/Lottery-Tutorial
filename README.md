@@ -19,7 +19,7 @@ npm install dotenv
 
 Next, make a `.env` file in the root of your project.
 
-Make an [Infura](https://infura.io/) account, get the Ropsten RPC and add the following to your `.env` file:
+Make an [Infura](https://infura.io/) account, get the Goerli RPC and add the following to your `.env` file:
 
 ```text
 RPC_URL="{PUT RPC URL HERE}"
@@ -33,14 +33,14 @@ require("dotenv").config();
 
 #### 2. Configure Hardhat to use forking
 
-By adding the following to our `module.exports` in the `hardhat.config.js` file, we tell hardhat to make a copy of the Ropsten network for use in local testing:
+By adding the following to our `module.exports` in the `hardhat.config.js` file, we tell hardhat to make a copy of the Goerli network for use in local testing:
 
 ```js
 module.exports = {
   solidity: "0.8.9",
   networks: {
     hardhat: { // Hardhat local network
-      chainId: 3, // Force the ChainID to be 3 (Ropsten) in testing
+      chainId: 5, // Force the ChainID to be 5 (Goerli) in testing
       forking: { // Configure the forking behavior
         url: process.env.RPC_URL, // Using the RPC_URL from the .env file
       },
@@ -496,9 +496,9 @@ npx hardhat --network localhost run scripts/close.js
 ```
 > You can kill the process after the request Id is returned.
 
-#### 3. Set up Ropsten
+#### 3. Set up Goerli
 
-In this next step, we will be pointing hardhat towards the Ropsten testnet. That means we will need a wallet with some Ropsten Eth funds on it. Even if you have a wallet, it is recommended you create a new wallet for testing purposes.
+In this next step, we will be pointing hardhat towards the Goerli testnet. That means we will need a wallet with some Goerli Eth funds on it. Even if you have a wallet, it is recommended you create a new wallet for testing purposes.
 
 > Never use a real wallet with real funds on it for development!
 
@@ -523,7 +523,7 @@ We will be using the mnemonic and Airnode address (Public Address). Lets add our
 MNEMONIC="genius session popular ..."
 ```
 
-Next, we will configure Hardhat to use the Ropsten network and our mnemonic. Inside the `networks` object in our `hardhat.config.js` file, add the following:
+Next, we will configure Hardhat to use the Goerli network and our mnemonic. Inside the `networks` object in our `hardhat.config.js` file, add the following:
 
 ```js
 module.exports = {
@@ -535,19 +535,19 @@ module.exports = {
         url: process.env.RPC_URL,
       }
     },
-    ropsten: {
-      url: process.env.RPC_URL, // Reuse our ropsten RPC URL
+    goerli: {
+      url: process.env.RPC_URL, // Reuse our Goerli RPC URL
       accounts: { mnemonic: process.env.MNEMONIC } // Use our wallet mnemonic
     }
   }
 };
 ```
 
-Now we can run all of our commands with the added `--network ropsten` flag without needing to change any code.
+Now we can run all of our commands with the added `--network goerli` flag without needing to change any code.
 
-#### 4. Get Ropsten Eth
+#### 4. Get Goerli Eth
 
-If you attempted to run any commands against Ropsten, chances are that they failed. Thats because we are using our newly generated wallet that doesn't even have the funds to pay for the transaction. We can get some free Ropsten Eth for testing by using a Ropsten Faucet.
+If you attempted to run any commands against Goerli, chances are that they failed. Thats because we are using our newly generated wallet that doesn't even have the funds to pay for the transaction. We can get some free Goerli Eth for testing by using a Goerli Faucet.
 
 I'll be using [This Faucet](https://faucet.egorfine.com/) but feel free to use any faucet you like. We will paste the public address (**Not Mnemonic!**) from our wallet generation step:
 
@@ -573,7 +573,7 @@ task(
 Now we can run the `balance` task and see the balance of our account:
 
 ```bash
-npx hardhat --network ropsten balance
+npx hardhat --network goerli balance
 ```
 
 If you followed the faucet steps correctly (and the faucet is currently operating), you should see the balance of our account is greater than 0 ETH. If not, you may need to wait a little bit longer or try a different faucet.
@@ -587,21 +587,21 @@ If you followed the faucet steps correctly (and the faucet is currently operatin
 We have everything configured to deploy onto a public chain. Lets start with the deployment:
 
 ```bash
-npx hardhat --network ropsten deploy
+npx hardhat --network goerli deploy
 ```
 
-> Keep in mind things will move much slower on the Ropsten network.
+> Keep in mind things will move much slower on the Goerli network.
 
 Next we will enter our lottery:
 
 ```bash
-npx hardhat --network ropsten run ./scripts/enter.js 
+npx hardhat --network goerli run ./scripts/enter.js 
 ```
 
 And finally, close our lottery:
 
 ```bash
-npx hardhat --network ropsten run ./scripts/close.js
+npx hardhat --network goerli run ./scripts/close.js
 ```
 
 ![image](https://user-images.githubusercontent.com/26840412/182447459-4dbda7bc-b703-4453-9242-61b4913b1c3a.png)
