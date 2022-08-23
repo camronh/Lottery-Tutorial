@@ -139,7 +139,7 @@ function getEntriesForNumber(uint256 _number, uint256 _week) public view returns
 
 #### 9. Create `receive` function
 
-The receive function will be called if funds are sent to the contract. In this case, we need to add these funds to the pot.
+The [receive function](https://docs.soliditylang.org/en/v0.8.14/contracts.html#receive-ether-function) will be called if funds are sent to the contract. In this case, we need to add these funds to the pot.
 
 ```Solidity
 receive() external payable {
