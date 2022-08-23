@@ -92,9 +92,9 @@ constructor(uint256 _endTime) {
 #### 6. Underneath the constructor function, add a function to buy a ticket
 
 ```solidity
-function enter(uint256 _number) public payable {
-    require(_number <= MAX_NUMBER, "Number must be 1-MAX_NUMBER"); // guess has to be between 1 and 10,000
-    require(block.timestamp < endTime, "Lottery has ended"); // lottery has to be open
+function enter(uint256 _number) external payable {
+    require(_number <= MAX_NUMBER, "Number must be 1-MAX_NUMBER"); // guess has to be between 1 and MAX_NUMBER
+    if (block.timestamp >= endTime) revert EndTimeReached(endTime); // lottery has to be open
     require(msg.value == ticketPrice, "Ticket price is 0.0001 ether"); // user needs to send 0.0001 ether with the transaction
     tickets[week][_number].push(msg.sender); // add user's address to list of entries for their number under the current week
     pot += ticketPrice; // account for the ticket sale in the pot

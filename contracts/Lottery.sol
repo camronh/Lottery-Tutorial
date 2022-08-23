@@ -76,32 +76,31 @@ contract Lottery is RrpRequesterV0, Ownable {
     /// @notice Close the current week and calculate the winners. Can be called by anyone after the end time has passed.
     /// @param requestId the request id of the response from Airnode
     /// @param data payload returned by Airnode
-    function closeWeek(bytes32 requestId, bytes calldata data)
+    function closeWeek(
+        bytes32 requestId,
+        bytes calldata data // Airnode returns the requestId and the payload to be decoded later
+    )
         external
-        onlyAirnodeRrp
+        onlyAirnodeRrp // Only AirnodeRrp can call this function
     {
         require(pendingRequestIds[requestId], "No such request made");
-        delete pendingRequestIds[requestId]; // remove request id from pending request ids
+        delete pendingRequestIds[requestId]; // If the request has been responded to, remove it from the pendingRequestIds mapping
 
-        uint256 _randomNumber = abi.decode(data, (uint256)) % MAX_NUMBER; // get the random number from the data
-        emit ReceivedRandomNumber(requestId, _randomNumber); // emit the random number as an event
+        uint256 _randomNumber = abi.decode(data, (uint256)) % MAX_NUMBER; // Decode the random number from the data and modulo it by the max number
+        emit ReceivedRandomNumber(requestId, _randomNumber); // Emit an event that the random number has been received
 
         // require(block.timestamp > endTime, "Lottery is open"); // will prevent duplicate closings. If someone closed it first it will increment the end time and not allow
 
+        // The rest we can leave unchanged
         winningNumber[week] = _randomNumber;
-        address[] memory winners = tickets[week][_randomNumber]; // get list of addresses that chose the random number this week
-        unchecked {
-            ++week; // increment week counter, will not overflow on human timelines
-        }
-        endTime += 7 days; // set end time for 7 days later
+        address[] memory winners = tickets[week][_randomNumber];
+        week++;
+        endTime += 7 days;
         if (winners.length > 0) {
-            uint256 earnings = pot / winners.length; // divide pot evenly among winners
-            pot = 0; // reset pot
-            for (uint256 i = 0; i < winners.length; ) {
+            uint256 earnings = pot / winners.length;
+            pot = 0;
+            for (uint256 i = 0; i < winners.length; i++) {
                 payable(winners[i]).call{value: earnings}(""); // send earnings to each winner
-                unchecked {
-                    ++i;
-                }
             }
         }
     }

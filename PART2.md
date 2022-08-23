@@ -123,7 +123,7 @@ Run `npx hardhat test` to check that your code passes all 3 tests before moving 
 ```solidity
 address public constant airnodeAddress =  0x9d3C147cA16DB954873A498e0af5852AB39139f2;
 bytes32 public constant endpointId = 0xfb6d017bb87991b7495f563db3c8cf59ff87b09781947bb1e417006ad7f55a78;
-address public sponsorWallet; // We will store the sponsor wallet here later
+address payable public sponsorWallet; // We will store the sponsor wallet here later
 ```
 
 The `airnodeAddress` and `endpointID` of a particular Airnode can be found in the documentation of the API provider, which in this case is [API3 QRNG](https://docs.api3.org/qrng/reference/providers.html#anu-quantum-random-numbers).
@@ -146,7 +146,7 @@ contract Lottery is RrpRequesterV0, Ownable {
 Then we can make our `setSponsorWallet` function and attach the `onlyOwner` modifier to restrict access:
 
 ```solidity
-function setSponsorWallet(address _sponsorWallet) public onlyOwner {
+function setSponsorWallet(address payable _sponsorWallet) external onlyOwner {
     sponsorWallet = _sponsorWallet;
 }
 ```
@@ -192,21 +192,21 @@ run `npx hardhat test` to test your code.
 In the `Lottery.sol` contract, add the following function:
 
 ```solidity
-function getWinningNumber() public payable {
-    // require(block.timestamp > endTime, "Lottery has not ended"); // not available until end time has passed
-    require(msg.value >= 0.01 ether, "Please top up sponsor wallet"); // user needs to send 0.01 ether with the transaction
-    bytes32 requestId = airnodeRrp.makeFullRequest(
-        airnodeAddress,
-        endpointId,
-        address(this), // Use the contract address as the sponsor. This will allow us to skip the step of sponsoring the requester
-        sponsorWallet,
-        address(this),
-        this.closeWeek.selector,
-        "" // No params
-    );
-    pendingRequestIds[requestId] = true; // Store the pendingRequestIds in a mapping
-    emit RequestedRandomNumber(requestId); // Emit an event that the request has been made
-    payable(sponsorWallet).transfer(msg.value); // Transfer the ether to the sponsor wallet
+function getWinningNumber() external payable {
+  // require(block.timestamp > endTime, "Lottery has not ended"); // not available until end time has passed
+  require(msg.value >= 0.01 ether, "Please top up sponsor wallet"); // user needs to send 0.01 ether with the transaction
+  bytes32 requestId = airnodeRrp.makeFullRequest(
+      airnodeAddress,
+      endpointId,
+      address(this),
+      sponsorWallet,
+      address(this),
+      this.closeWeek.selector,
+      ""
+  );
+  pendingRequestIds[requestId] = true;
+  emit RequestedRandomNumber(requestId);
+  sponsorWallet.call{value: msg.value}(""); // Send funds to sponsor wallet
 }
 ```
 
@@ -237,30 +237,33 @@ contract Lottery is RrpRequesterV0, Ownable {
 Let's overwrite the `closeWeek` function:
 
 ```solidity
-function closeWeek(bytes32 requestId, bytes calldata data) // Airnode returns the requestId and the payload to be decoded later
-    public
-    onlyAirnodeRrp // Only AirnodeRrp can call this function
+function closeWeek(
+  bytes32 requestId,
+  bytes calldata data // Airnode returns the requestId and the payload to be decoded later
+)
+  external
+  onlyAirnodeRrp // Only AirnodeRrp can call this function
 {
-    require(pendingRequestIds[requestId], "No such request made");
-    delete pendingRequestIds[requestId]; // If the request has been responded to, remove it from the pendingRequestIds mapping
+  require(pendingRequestIds[requestId], "No such request made");
+  delete pendingRequestIds[requestId]; // If the request has been responded to, remove it from the pendingRequestIds mapping
 
-    uint256 _randomNumber = abi.decode(data, (uint256)) % MAX_NUMBER; // Decode the random number from the data and modulo it by the max number
-    emit ReceivedRandomNumber(requestId, _randomNumber); // Emit an event that the random number has been received
+  uint256 _randomNumber = abi.decode(data, (uint256)) % MAX_NUMBER; // Decode the random number from the data and modulo it by the max number
+  emit ReceivedRandomNumber(requestId, _randomNumber); // Emit an event that the random number has been received
 
-    // require(block.timestamp > endTime, "Lottery is open"); // will prevent duplicate closings. If someone closed it first it will increment the end time and not allow
+  // require(block.timestamp > endTime, "Lottery is open"); // will prevent duplicate closings. If someone closed it first it will increment the end time and not allow
 
-    // The rest we can leave unchanged
-    winningNumber[week] = _randomNumber;
-    address[] memory winners = tickets[week][_randomNumber];
-    week++;
-    endTime += 7 days;
-    if (winners.length > 0) {
-        uint256 earnings = pot / winners.length;
-        pot = 0;
-        for (uint256 i = 0; i < winners.length; i++) {
-            payable(winners[i]).transfer(earnings);
-        }
-    }
+  // The rest we can leave unchanged
+  winningNumber[week] = _randomNumber;
+  address[] memory winners = tickets[week][_randomNumber];
+  week++;
+  endTime += 7 days;
+  if (winners.length > 0) {
+      uint256 earnings = pot / winners.length;
+      pot = 0;
+      for (uint256 i = 0; i < winners.length; i++) {
+          payable(winners[i]).call{value: earnings}(""); // send earnings to each winner
+      }
+  }
 }
 ```
 
