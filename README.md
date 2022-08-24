@@ -121,9 +121,9 @@ Run `npx hardhat test` to check that your code passes all 3 tests before moving 
 [Airnode Parameters](https://docs.api3.org/airnode/v0.7/grp-developers/call-an-airnode.html#request-parameters) need to be stored in our contract. In `Lottery.sol`, add the following to the global variables:
 
 ```solidity
-address public constant airnodeAddress =  0x9d3C147cA16DB954873A498e0af5852AB39139f2;
-bytes32 public constant endpointId = 0xfb6d017bb87991b7495f563db3c8cf59ff87b09781947bb1e417006ad7f55a78;
-address public sponsorWallet; // We will store the sponsor wallet here later
+address public constant airnodeAddress =  0x9d3C147cA16DB954873A498e0af5852AB39139f2; // ANU's Airnode address
+bytes32 public constant endpointId = 0xfb6d017bb87991b7495f563db3c8cf59ff87b09781947bb1e417006ad7f55a78; // ANU's uint256 endpointId
+address payable public sponsorWallet; // We will store the sponsor wallet here later
 ```
 
 The `airnodeAddress` and `endpointID` of a particular Airnode can be found in the documentation of the API provider, which in this case is [API3 QRNG](https://docs.api3.org/qrng/reference/providers.html#anu-quantum-random-numbers).
@@ -146,7 +146,7 @@ contract Lottery is RrpRequesterV0, Ownable {
 Then we can make our `setSponsorWallet` function and attach the `onlyOwner` modifier to restrict access:
 
 ```solidity
-function setSponsorWallet(address _sponsorWallet) public onlyOwner {
+function setSponsorWallet(address payable _sponsorWallet) external onlyOwner {
     sponsorWallet = _sponsorWallet;
 }
 ```
@@ -167,7 +167,7 @@ const airnodeAdmin = require("@api3/airnode-admin");
 ```
 
 We'll hardcode the [ANU QRNG's Xpub and Airnode Address](https://docs.api3.org/qrng/reference/providers.html) to [derive our `sponsorWalletAddress`](https://docs.api3.org/airnode/v0.7/grp-developers/requesters-sponsors.html#how-to-derive-a-sponsor-wallet). 
-Add the following test inside the "Deployment" tests:
+Add the following test underneath the "Deploys" test:
 
 ```js
 it("Sets sponsor wallet", async function () {
@@ -192,21 +192,21 @@ run `npx hardhat test` to test your code.
 In the `Lottery.sol` contract, add the following function:
 
 ```solidity
-function getWinningNumber() public payable {
-    // require(block.timestamp > endTime, "Lottery has not ended"); // not available until end time has passed
-    require(msg.value >= 0.01 ether, "Please top up sponsor wallet"); // user needs to send 0.01 ether with the transaction
-    bytes32 requestId = airnodeRrp.makeFullRequest(
-        airnodeAddress,
-        endpointId,
-        address(this), // Use the contract address as the sponsor. This will allow us to skip the step of sponsoring the requester
-        sponsorWallet,
-        address(this),
-        this.closeWeek.selector,
-        "" // No params
-    );
-    pendingRequestIds[requestId] = true; // Store the pendingRequestIds in a mapping
-    emit RequestedRandomNumber(requestId); // Emit an event that the request has been made
-    payable(sponsorWallet).transfer(msg.value); // Transfer the ether to the sponsor wallet
+function getWinningNumber() external payable {
+  // require(block.timestamp > endTime, "Lottery has not ended"); // not available until end time has passed
+  require(msg.value >= 0.01 ether, "Please top up sponsor wallet"); // user needs to send 0.01 ether with the transaction
+  bytes32 requestId = airnodeRrp.makeFullRequest(
+      airnodeAddress,
+      endpointId,
+      address(this), // Use the contract address as the sponsor. This will allow us to skip the step of sponsoring the requester
+      sponsorWallet,
+      address(this), // Return the response to this contract
+      this.closeWeek.selector, // Call this function with the response
+      "" // No params
+  );
+  pendingRequestIds[requestId] = true; // Store the request id in the pending request mapping
+  emit RequestedRandomNumber(requestId); // Emit an event that the request has been made 
+  sponsorWallet.call{value: msg.value}(""); // Send funds to sponsor wallet
 }
 ```
 
@@ -237,30 +237,33 @@ contract Lottery is RrpRequesterV0, Ownable {
 Let's overwrite the `closeWeek` function:
 
 ```solidity
-function closeWeek(bytes32 requestId, bytes calldata data) // Airnode returns the requestId and the payload to be decoded later
-    public
-    onlyAirnodeRrp // Only AirnodeRrp can call this function
+function closeWeek(
+  bytes32 requestId,
+  bytes calldata data // Airnode returns the requestId and the payload to be decoded later
+)
+  external
+  onlyAirnodeRrp // Only AirnodeRrp can call this function
 {
-    require(pendingRequestIds[requestId], "No such request made");
-    delete pendingRequestIds[requestId]; // If the request has been responded to, remove it from the pendingRequestIds mapping
+  require(pendingRequestIds[requestId], "No such request made");
+  delete pendingRequestIds[requestId]; // If the request has been responded to, remove it from the pendingRequestIds mapping
 
-    uint256 _randomNumber = abi.decode(data, (uint256)) % MAX_NUMBER; // Decode the random number from the data and modulo it by the max number
-    emit ReceivedRandomNumber(requestId, _randomNumber); // Emit an event that the random number has been received
+  uint256 _randomNumber = abi.decode(data, (uint256)) % MAX_NUMBER; // Decode the random number from the data and modulo it by the max number
+  emit ReceivedRandomNumber(requestId, _randomNumber); // Emit an event that the random number has been received
 
-    // require(block.timestamp > endTime, "Lottery is open"); // will prevent duplicate closings. If someone closed it first it will increment the end time and not allow
+  // require(block.timestamp > endTime, "Lottery is open"); // will prevent duplicate closings. If someone closed it first it will increment the end time and not allow
 
-    // The rest we can leave unchanged
-    winningNumber[week] = _randomNumber;
-    address[] memory winners = tickets[week][_randomNumber];
-    week++;
-    endTime += 7 days;
-    if (winners.length > 0) {
-        uint256 earnings = pot / winners.length;
-        pot = 0;
-        for (uint256 i = 0; i < winners.length; i++) {
-            payable(winners[i]).transfer(earnings);
-        }
-    }
+  // The rest we can leave unchanged
+  winningNumber[week] = _randomNumber;
+  address[] memory winners = tickets[week][_randomNumber];
+  week++;
+  endTime += 7 days;
+  if (winners.length > 0) {
+      uint256 earnings = pot / winners.length;
+      pot = 0;
+      for (uint256 i = 0; i < winners.length; i++) {
+          payable(winners[i]).call{value: earnings}(""); // send earnings to each winner
+      }
+  }
 }
 ```
 
@@ -295,7 +298,7 @@ Then at the top of your `hardhat.config.js` file add the following:
 require("hardhat-deploy");
 ```
 
-Now we can create a folder named `deploy` in the root to house our deployment scripts Hardhat-Deploy will run all of our deployment scripts in order each time we run `npx hardhat deploy`.
+Now we can create a folder named `deploy` in the root to house our deployment scripts. Hardhat-Deploy will run all of our deployment scripts in order each time we run `npx hardhat deploy`.
 
 #### 2. Write deploy script
 
@@ -312,8 +315,7 @@ Finally, we'll deploy the contract using `hre.deployments`. We pass in our argum
 
 ```js
 module.exports = async () => {
-  const airnodeRrpAddress =
-    airnodeProtocol.AirnodeRrpAddresses[await hre.getChainId()]; // Retrieve the RRP address for the current chain
+  const airnodeRrpAddress = airnodeProtocol.AirnodeRrpAddresses[await hre.getChainId()]; // Retrieve the RRP address for the current chain
   nextWeek = Math.floor(Date.now() / 1000) + 9000; // Constructor takes in an `endTime` param.
 
   const lotteryContract = await hre.deployments.deploy("Lottery", {
@@ -333,10 +335,10 @@ module.exports.tags = ["deploy"];
 
 #### 3. Test locally
 
-Let's try it out! We should test on a local blockchain first to make things easy. First lets start up a local blockchain:
+Let's try it out! We should test on a local blockchain first to make things easy. First lets start up a local blockchain. We use the `--no-deploy` flag to prevent Hardhat-Deploy from running the deployment scripts each time you spin up a local node:
 
 ```bash
-npx hardhat node
+npx hardhat node --no-deploy
 ```
 
 Then, in a separate terminal, we can deploy to our chain (localhost), specified by the `--network` parameter:
@@ -497,12 +499,12 @@ console.log(
 );
 ```
 
-If we test this against our local chain, we should receive a request ID but no response.
+If we test this against our local chain, we should receive a request ID but no response. That's because the ANU Airnode can't access requests on our local chain.
 
 ```bash
 npx hardhat --network localhost run scripts/close.js
 ```
-> You can kill the process after the request Id is returned.
+> You can kill the request process after the request Id is printed.
 
 #### 3. Set up Goerli
 
@@ -560,8 +562,6 @@ If you attempted to run any commands against Goerli, chances are that they faile
 We'll paste the public address (**Not Mnemonic!**) from our wallet generation step into either or both faucets:
 
 ![Alchemy faucet](https://user-images.githubusercontent.com/81271473/186013366-b536d15b-12ef-491c-a22f-9a797d604928.png)
-
-If using a MetaMask wallet, you may [connect to the Goerli testnet](https://blog.cryptostars.is/goerli-g%C3%B6rli-testnet-network-to-metamask-and-receiving-test-ethereum-in-less-than-2-min-de13e6fe5677) to view your ETH.
 
 We can test our accounts in Hardhat by using tasks. Inside of the `hardhat.config.js` file, underneath our imports and above our exports, add the following:
 
