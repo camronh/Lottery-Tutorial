@@ -309,7 +309,7 @@ const hre = require("hardhat"); // Instance of Hardhat Runtime Environment
 const airnodeProtocol = require("@api3/airnode-protocol");
 ```
 
-Hardhat deploy scripts should be done through a `module.exports` function **Need more info**. We will use the Airnode Protocol package to retrieve the RRP Contract address needed as an argument to deploy our lottery contract. We'll use `hre.getChainId()`, a function included in Hardhat-Deploy, to get the chain ID, which we'd set to 5 in `hardhat.config.js`.
+[Hardhat deploy scripts](https://github.com/wighawag/tutorial-hardhat-deploy#writing-deployment-scripts) should be done through a `module.exports` function. We will use the Airnode Protocol package to retrieve the RRP Contract address needed as an argument to deploy our lottery contract. We'll use `hre.getChainId()`, a function included in Hardhat-Deploy, to get the chain ID, which we'd set to 5 in `hardhat.config.js`.
 
 Finally, we'll deploy the contract using `hre.deployments`. We pass in our arguments, a "from" address, and set logging to true.
 
