@@ -620,3 +620,7 @@ npx hardhat --network goerli run ./scripts/close.js
 ```
 
 ![image](https://user-images.githubusercontent.com/26840412/182447459-4dbda7bc-b703-4453-9242-61b4913b1c3a.png)
+
+## Conclusion
+
+This is the end of the tutorial, I hope you learned something! The complete code can be found in the [tutorial repo](https://github.com/camronh/Lottery-Tutorial) (Feel free to drop a ⭐️). If you have any questions, please feel free to join the API3 [Discord](https://discord.com/invite/qnRrcfnm5W). 
