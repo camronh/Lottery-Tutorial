@@ -171,17 +171,22 @@ Add the following test underneath the "Deploys" test:
 
 ```js
 it("Sets sponsor wallet", async function () {
-  const sponsorWalletAddress = await airnodeAdmin.deriveSponsorWalletAddress(
-    "xpub6DXSDTZBd4aPVXnv6Q3SmnGUweFv6j24SK77W4qrSFuhGgi666awUiXakjXruUSCDQhhctVG7AQt67gMdaRAsDnDXv23bBRKsMWvRzo6kbf", // ANU Xpub
-    "0x9d3C147cA16DB954873A498e0af5852AB39139f2", // ANU Airnode Address
-    lotteryContract.address // used as sponsorAddress 
-  );
-  await expect(
-    lotteryContract.connect(accounts[1]).setSponsorWallet(sponsorWalletAddress) // we deployed the lottery contract with the first account
-  ).to.be.reverted; // onlyOwner should be able to call this function
+    const anuXpub =
+        "xpub6DXSDTZBd4aPVXnv6Q3SmnGUweFv6j24SK77W4qrSFuhGgi666awUiXakjXruUSCDQhhctVG7AQt67gMdaRAsDnDXv23bBRKsMWvRzo6kbf"
 
-  await lotteryContract.setSponsorWallet(sponsorWalletAddress);
-  expect(await lotteryContract.sponsorWallet()).to.equal(sponsorWalletAddress);
+    const anuAirnodeAddress = "0x9d3C147cA16DB954873A498e0af5852AB39139f2"
+
+    const sponsorWalletAddress = await airnodeAdmin.deriveSponsorWalletAddress(
+        anuXpub,
+        anuAirnodeAddress,
+        lotteryContract.address // used as the sponsor
+    );
+
+
+    await expect(lotteryContract.connect(accounts[1]).setSponsorWallet(sponsorWalletAddress)).to.be.reverted;
+
+    await lotteryContract.setSponsorWallet(sponsorWalletAddress);
+    expect(await lotteryContract.sponsorWallet()).to.equal(sponsorWalletAddress);
 });
 ```
 
