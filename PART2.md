@@ -1,4 +1,4 @@
-# Beginners Web3/Solidity/Blockchain Tutorial Part 2
+# Part 1 - Decentralization
 
 In [Part 1](https://github.com/camronh/Lottery-Tutorial/tree/Part1) we created the functionality for our lottery dApp. In Part 2, we'll
 be integrating the [API3 QRNG](https://api3.org/QRNG) into our contract and deploying it onto the [Ethereum Goerli public testnet](https://ethereum.org/en/developers/docs/networks/#goerli). Alternatively, you may use another supported [chain](https://docs.api3.org/qrng/reference/chains.html) in place of Goerli by following the same steps and substituting accordingly.
